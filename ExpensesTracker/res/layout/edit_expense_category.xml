@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
+    
+   	<TextView
+	    android:layout_width="wrap_content" 
+	    android:layout_height="wrap_content"
+	    android:gravity="center_vertical"
+		android:text="@string/edit_expense_category.title"/>	 
+
+    <LinearLayout
+    	android:orientation="horizontal"
+	    android:layout_width="fill_parent" 
+	    android:layout_height="wrap_content">
+	        	
+    	<TextView
+		    android:layout_width="wrap_content" 
+		    android:layout_height="wrap_content" 
+			android:text="@string/edit_expense_category.name"/>	 
+    	<EditText
+		    android:layout_width="wrap_content" 
+		    android:layout_height="wrap_content"
+		    android:layout_weight="1" 
+			android:id="@+id/edit_expense_category_name"/>	 
+			
+    </LinearLayout>    
+
+	<TextView  
+	    android:layout_width="fill_parent" 
+	    android:layout_height="wrap_content" 
+	    android:text="@string/edit_expense_category.description"/>
+   	<EditText
+	    android:layout_width="fill_parent" 
+	    android:layout_height="fill_parent"
+	    android:layout_weight="1"
+	    android:inputType="textMultiLine"
+	    android:gravity="top"
+	    android:text="test"
+		android:id="@+id/edit_expense_category_description"/>
+
+    <LinearLayout
+    	android:orientation="horizontal"
+	    android:layout_width="fill_parent" 
+	    android:layout_height="wrap_content"
+	    android:gravity="center_vertical">
+	        	
+		<Button
+		    android:layout_width="wrap_content" 
+		    android:layout_height="wrap_content"
+		    android:layout_weight="1"
+		    android:text="@string/edit_expense_category.ok"
+			android:id="@+id/edit_expense_category_ok"/>
+
+		<Button
+		    android:layout_width="wrap_content" 
+		    android:layout_height="wrap_content"
+		    android:layout_weight="1"
+		    android:text="@string/edit_expense_category.cancel"
+			android:id="@+id/edit_expense_category_cancel"/>
+
+	</LinearLayout>
+
+</LinearLayout>

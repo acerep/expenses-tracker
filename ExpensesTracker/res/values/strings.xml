@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Expenses Tracker</string>
+    <string name="edit_expense_category.title">Expense Category</string>
+    <string name="edit_expense_category.name">Name</string>
+    <string name="edit_expense_category.description">Description</string>
+    <string name="edit_expense_category.ok">ok</string>
+    <string name="edit_expense_category.cancel">cancel</string>
+    <string name="view_expense_categories.no_categories">No expense categories available</string>
+    <string name="view_expense_categories.add_expense_category">Add category</string>
+</resources>
