@@ -1,11 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Expenses Tracker</string>
-    <string name="edit_expense_category.title">Expense Category</string>
+    <string name="expenses_tracker.title">Expenses Tracker</string>
+    <string name="expenses_tracker.view_categories">Categories</string>
+    <string name="expenses_tracker.view_expenses">Expenses</string>
+    <string name="expenses_tracker.exit">Exit</string>
+    <string name="expenses_tracker.save">Save</string>
+    <string name="expenses_tracker.cancel">Cancel</string>
+    <string name="expenses_tracker.yes">Yes</string>
+    <string name="expenses_tracker.no">No</string>
+    <string name="add_expense.title">Add Expense</string>
+    <string name="edit_expense.title">Edit Expense</string>
+    <string name="edit_expense.expense_title">Expense Information</string>
+    <string name="edit_expense.expense_category_title">Expense Category</string>
+    <string name="edit_expense.expense_detail_title">Expense Details</string>
+    <string name="add_expense_category.title">Add Expense Category</string>
+    <string name="edit_expense_category.title">Edit Expense Category</string>
     <string name="edit_expense_category.name">Name</string>
     <string name="edit_expense_category.description">Description</string>
-    <string name="edit_expense_category.ok">ok</string>
-    <string name="edit_expense_category.cancel">cancel</string>
+    <string name="view_expenses.no_expenses">No expenses present</string>
+    <string name="view_expenses.add_expense">Add expense</string>
+    <string name="view_expenses.delete_expense">Delete expense</string>    
+    <string name="view_expenses.delete_expense_message">Are you sure you want to delete the expense?</string>    
+    <string name="view_expense_categories.title">Expense Categories</string>
     <string name="view_expense_categories.no_categories">No expense categories available</string>
     <string name="view_expense_categories.add_expense_category">Add category</string>
 </resources>

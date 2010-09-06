@@ -1,11 +1,14 @@
 package com.igel.expensesTracker;
 
+import java.util.HashMap;
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.database.sqlite.SQLiteQueryBuilder;
 import android.util.Log;
 
 public class ExpensesDbAdapter {
@@ -18,12 +21,21 @@ public class ExpensesDbAdapter {
 	public static final String EXPENSE_CATEGORY_NAME = "name";
 	public static final String EXPENSE_CATEGORY_DESCRIPTION = "description";
 
+	private static final String EXPENSE_TABLE = "expense";
+	public static final String EXPENSE_ID = "_id";
+	public static final String EXPENSE_DATE = "expenseDate";
+	public static final String EXPENSE_AMOUNT = "amount";
+	public static final String EXPENSE_DETAILS = "details";
+	public static final String EXPENSE_EXPENSE_CATEGORY_ID = "expenseCategoryId";
+
 	private static final String TAG = "ExpenseDbAdapter";
 
 	private DatabaseHelper mDbHelper;
 	private SQLiteDatabase mDb;
 
 	private Context mCtx;
+
+	private static HashMap<String, String> sExpensesProjectionMap;
 
 	/**
 	 * Constructor - takes the context to allow the database to be opened/created
@@ -44,6 +56,13 @@ public class ExpensesDbAdapter {
 	public ExpensesDbAdapter open() throws SQLException {
 		mDbHelper = new DatabaseHelper(mCtx);
 		mDb = mDbHelper.getWritableDatabase();
+		sExpensesProjectionMap = new HashMap<String, String>();
+		sExpensesProjectionMap.put(EXPENSE_TABLE + "." + EXPENSE_ID, EXPENSE_TABLE + "." + EXPENSE_ID + " AS "
+				+ EXPENSE_ID);
+		sExpensesProjectionMap.put(EXPENSE_DATE, EXPENSE_DATE);
+		sExpensesProjectionMap.put(EXPENSE_AMOUNT, EXPENSE_AMOUNT);
+		sExpensesProjectionMap.put(EXPENSE_DETAILS, EXPENSE_DETAILS);
+		sExpensesProjectionMap.put(EXPENSE_CATEGORY_NAME, EXPENSE_CATEGORY_NAME);
 		return this;
 	}
 
@@ -75,7 +94,7 @@ public class ExpensesDbAdapter {
 	 * @param description description to set category description to
 	 * @return true if the category was successfully updated, false otherwise
 	 */
-	public boolean updateNote(long rowId, String name, String description) {
+	public boolean updateExpenseCategory(long rowId, String name, String description) {
 		ContentValues args = new ContentValues();
 		args.put(EXPENSE_CATEGORY_NAME, name);
 		args.put(EXPENSE_CATEGORY_DESCRIPTION, description);
@@ -88,18 +107,18 @@ public class ExpensesDbAdapter {
 	 * 
 	 * @param rowId id of category to retrieve
 	 * @return Cursor positioned to matching category, if found
-	 * @throws SQLException if note could not be found/retrieved
+	 * @throws SQLException if expense category could not be found/retrieved
 	 */
 	public Cursor fetchExpenseCategory(long rowId) throws SQLException {
 
-		Cursor mCursor = mDb.query(false, EXPENSE_CATEGORY_TABLE, new String[] { EXPENSE_CATEGORY_ID,
-				EXPENSE_CATEGORY_NAME, EXPENSE_CATEGORY_DESCRIPTION }, EXPENSE_CATEGORY_ID + "=" + rowId, null, null, null,
-				null, null);
+		Cursor cursor = mDb.query(false, EXPENSE_CATEGORY_TABLE, new String[] { EXPENSE_CATEGORY_ID,
+				EXPENSE_CATEGORY_NAME, EXPENSE_CATEGORY_DESCRIPTION }, EXPENSE_CATEGORY_ID + "=" + rowId, null, null,
+				null, null, null);
 
-		if (mCursor != null) {
-			mCursor.moveToFirst();
+		if (cursor != null) {
+			cursor.moveToFirst();
 		}
-		return mCursor;
+		return cursor;
 	}
 
 	/**
@@ -108,9 +127,90 @@ public class ExpensesDbAdapter {
 	 * @return Cursor over all categories
 	 */
 	public Cursor fetchAllExpenseCategories() {
-
 		return mDb.query(EXPENSE_CATEGORY_TABLE, new String[] { EXPENSE_CATEGORY_ID, EXPENSE_CATEGORY_NAME,
 				EXPENSE_CATEGORY_DESCRIPTION }, null, null, null, null, null);
+	}
+
+	/**
+	 * Create a new expense using provided information. If the expense is successfully created return the new rowId for
+	 * that expense, otherwise return a -1 to indicate failure.
+	 * 
+	 * @param date the date of the expense in milliseconds
+	 * @param amount the expense amount
+	 * @param expenseCategoryId id of the expense category of the expense
+	 * @param details the details of the expense
+	 * @return rowId or -1 if failed
+	 */
+	public long createExpense(long dateInMillis, int amount, long expenseCategoryId, String details) {
+		ContentValues initialValues = new ContentValues();
+		initialValues.put(EXPENSE_DATE, dateInMillis);
+		initialValues.put(EXPENSE_AMOUNT, amount);
+		initialValues.put(EXPENSE_EXPENSE_CATEGORY_ID, expenseCategoryId);
+		initialValues.put(EXPENSE_DETAILS, details);
+
+		return mDb.insert(EXPENSE_TABLE, null, initialValues);
+	}
+
+	/**
+	 * Update the expense using the details provided. The expense to be updated is specified using the rowId.
+	 * 
+	 * @param rowId id of expense to update
+	 * @param date the date of the expense in milliseconds
+	 * @param amount the expense amount
+	 * @param expenseCategoryId id of the expense category of the expense
+	 * @param details the details of the expense
+	 * @return true if the category was successfully updated, false otherwise
+	 */
+	public boolean updateExpense(long rowId, long dateInMillis, int amount, long expenseCategoryId, String details) {
+		ContentValues args = new ContentValues();
+		args.put(EXPENSE_DATE, dateInMillis);
+		args.put(EXPENSE_AMOUNT, amount);
+		args.put(EXPENSE_EXPENSE_CATEGORY_ID, expenseCategoryId);
+		args.put(EXPENSE_DETAILS, details);
+
+		return mDb.update(EXPENSE_TABLE, args, EXPENSE_ID + "=" + rowId, null) > 0;
+	}
+
+	/**
+	 * Return a Cursor positioned at the expense that matches the given rowId
+	 * 
+	 * @param rowId id of expense to retrieve
+	 * @return Cursor positioned to matching expense, if found
+	 * @throws SQLException if expense could not be found/retrieved
+	 */
+	public Cursor fetchExpense(long rowId) throws SQLException {
+		Cursor cursor = mDb.query(false, EXPENSE_TABLE, new String[] { EXPENSE_ID, EXPENSE_DATE, EXPENSE_AMOUNT,
+				EXPENSE_DETAILS, EXPENSE_EXPENSE_CATEGORY_ID }, EXPENSE_ID + "=" + rowId, null, null, null, null, null);
+
+		if (cursor != null) {
+			cursor.moveToFirst();
+		}
+		return cursor;
+	}
+
+    /**
+     * Delete the expense with the given rowId
+     * 
+     * @param rowId id of expense to delete
+     * @return true if deleted, false otherwise
+     */
+    public boolean deleteExpense(long rowId) {
+        return mDb.delete(EXPENSE_TABLE, EXPENSE_ID + "=" + rowId, null) > 0;
+    }
+	
+	/**
+	 * Return a Cursor over the list of all expenses in the database joined with the referenced expense category name.
+	 * 
+	 * @return Cursor over all expenses
+	 */
+	public Cursor fetchAllExpenses() {
+		SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
+		qb.setTables(EXPENSE_TABLE + " left outer join " + EXPENSE_CATEGORY_TABLE + " on (" + EXPENSE_TABLE + "."
+				+ EXPENSE_EXPENSE_CATEGORY_ID + " = " + EXPENSE_CATEGORY_TABLE + "." + EXPENSE_CATEGORY_ID + ")");
+		qb.setProjectionMap(sExpensesProjectionMap);
+		return qb.query(mDb, new String[] { EXPENSE_TABLE + "." + EXPENSE_ID, EXPENSE_DATE, EXPENSE_AMOUNT,
+				EXPENSE_DETAILS, EXPENSE_CATEGORY_NAME }, null, null, null, null, EXPENSE_TABLE + "." + EXPENSE_ID
+				+ " desc");
 	}
 
 	private class DatabaseHelper extends SQLiteOpenHelper {
@@ -125,6 +225,11 @@ public class ExpensesDbAdapter {
 			db.execSQL("create table " + EXPENSE_CATEGORY_TABLE + "(" + EXPENSE_CATEGORY_ID
 					+ " integer primary key autoincrement, " + EXPENSE_CATEGORY_NAME + " text not null, "
 					+ EXPENSE_CATEGORY_DESCRIPTION + " text not null);");
+			db.execSQL("create table " + EXPENSE_TABLE + "(" + EXPENSE_ID + " integer primary key autoincrement, "
+					+ EXPENSE_DATE + " integer not null, " + EXPENSE_AMOUNT + " integer not null, "
+					+ EXPENSE_EXPENSE_CATEGORY_ID + " integer not null, " + EXPENSE_DETAILS
+					+ " text not null, constraint exp2expCat foreign key (" + EXPENSE_EXPENSE_CATEGORY_ID
+					+ ") references " + EXPENSE_CATEGORY_TABLE + " (" + EXPENSE_CATEGORY_ID + "));");
 			db.execSQL("insert into " + EXPENSE_CATEGORY_TABLE + " (" + EXPENSE_CATEGORY_NAME + ", "
 					+ EXPENSE_CATEGORY_DESCRIPTION
 					+ ") values ('Unknown', 'Default expense category for expenses of unknown type');");

@@ -53,7 +53,8 @@ public class EditExpenseCategory extends Activity {
         }
 
 		// set button listeners
-		setButtonListeners();		
+		setButtonListeners();
+		setTitle(mExpenseCategoryId);
     }
 
 	@Override
@@ -90,7 +91,7 @@ public class EditExpenseCategory extends Activity {
     			mExpenseCategoryId = id;
     	}
     	else {
-    		mDbAdapter.updateNote(mExpenseCategoryId, expenseCategoryName, expenseCategoryDescription);
+    		mDbAdapter.updateExpenseCategory(mExpenseCategoryId, expenseCategoryName, expenseCategoryDescription);
     	}
     }
     
@@ -102,14 +103,21 @@ public class EditExpenseCategory extends Activity {
 				finish();
 			}
 		});
-		Button okButton = (Button)findViewById(R.id.edit_expense_category_ok);
-		okButton.setOnClickListener(new OnClickListener() {			
+		Button saveButton = (Button)findViewById(R.id.edit_expense_category_save);
+		saveButton.setOnClickListener(new OnClickListener() {			
 			public void onClick(View v) {
 				setResult(RESULT_OK);
 				saveExpenseCategory();
 				finish();
 			}
 		});
+	}
+	
+	private void setTitle(Long categoryID) {
+		if (categoryID != null)
+			setTitle(R.string.edit_expense_category_title);
+		else
+			setTitle(R.string.add_expense_category_title);
 	}
 
    private void fetchDataFromDb() {
