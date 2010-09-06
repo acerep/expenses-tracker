@@ -41,6 +41,12 @@ public class ExpenseTracker extends Activity {
 				viewExpenses();
 			}
 		});
+		Button addExpenseButton = (Button)findViewById(R.id.expenses_tracker_add_expense);
+		addExpenseButton.setOnClickListener(new OnClickListener() {			
+			public void onClick(View v) {
+				addExpense();
+			}
+		});
 	}
     
 	private void viewExpenseCategories() {
@@ -50,6 +56,11 @@ public class ExpenseTracker extends Activity {
 	
 	private void viewExpenses() {
 		Intent intent = new Intent(this, ViewExpenses.class);
+		startActivity(intent);
+	}
+	
+	private void addExpense() {
+		Intent intent = new Intent(this, EditExpense.class);
 		startActivity(intent);
 	}
 }

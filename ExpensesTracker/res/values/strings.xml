@@ -4,6 +4,7 @@
     <string name="expenses_tracker.title">Expenses Tracker</string>
     <string name="expenses_tracker.view_categories">Categories</string>
     <string name="expenses_tracker.view_expenses">Expenses</string>
+    <string name="expenses_tracker.add_expense">Add Expense</string>
     <string name="expenses_tracker.exit">Exit</string>
     <string name="expenses_tracker.save">Save</string>
     <string name="expenses_tracker.cancel">Cancel</string>

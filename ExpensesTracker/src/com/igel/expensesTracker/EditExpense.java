@@ -211,6 +211,23 @@ public class EditExpense extends Activity {
     	}		
 	}
 	
+	@Override
+	public void onPause() {
+		super.onPause();
+		mDbAdapter.close();
+		mDbAdapter = null;
+	}
+	
+    @Override
+    public void onResume() {
+    	super.onResume();
+    	if (mDbAdapter == null) {
+	        mDbAdapter = new ExpensesDbAdapter(this);        
+	        mDbAdapter.open();
+	        fetchDataFromDb();
+    	}
+    }
+		
 	private void fetchDataFromDb() {
 		Cursor expense = mDbAdapter.fetchExpense(mExpenseId);
 		startManagingCursor(expense);

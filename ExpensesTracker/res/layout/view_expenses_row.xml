@@ -38,8 +38,7 @@
         android:layout_toRightOf="@id/view_expense_row_category"     
         android:layout_below="@id/view_expense_row_amount"
    		android:textAppearance="@android:style/TextAppearance.Small"
- 		style="@style/expenses.tracker.greyText"
-        android:paddingLeft="5dp"     
+  		style="@style/expenses.tracker.blueText"
         android:singleLine="true"
         android:text="details"/>
 

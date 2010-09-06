@@ -95,6 +95,23 @@ public class EditExpenseCategory extends Activity {
     	}
     }
     
+	@Override
+	public void onPause() {
+		super.onPause();
+		mDbAdapter.close();
+		mDbAdapter = null;
+	}
+	
+    @Override
+    public void onResume() {
+    	super.onResume();
+    	if (mDbAdapter == null) {
+	        mDbAdapter = new ExpensesDbAdapter(this);        
+	        mDbAdapter.open();
+	        fetchDataFromDb();
+    	}
+    }
+	
 	private void setButtonListeners() {
 		Button cancelButton = (Button)findViewById(R.id.edit_expense_category_cancel);
 		cancelButton.setOnClickListener(new OnClickListener() {			

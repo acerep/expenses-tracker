@@ -91,7 +91,24 @@ public class ViewExpenseCategories extends ListActivity {
 		menu.add(0, ADD_EXPENSE_CATEGORY_ID, 0, R.string.view_expense_categories_add_expense_category);
 		return true;
 	}
-
+	
+	@Override
+	public void onPause() {
+		super.onPause();
+		mDbAdapter.close();
+		mDbAdapter = null;
+	}
+	
+    @Override
+    public void onResume() {
+    	super.onResume();
+    	if (mDbAdapter == null) {
+	        mDbAdapter = new ExpensesDbAdapter(this);        
+	        mDbAdapter.open();
+	        fetchDataFromDb();
+    	}
+    }
+	
 	@Override
 	public boolean onContextItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
@@ -151,7 +168,6 @@ public class ViewExpenseCategories extends ListActivity {
 	protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
 		// called when started activity is finished
 		super.onActivityResult(requestCode, resultCode, intent);
-		fetchDataFromDb();
 	}
 
 	private void fetchDataFromDb() {

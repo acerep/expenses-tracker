@@ -9,20 +9,15 @@
         <Button
         	android:id="@+id/expenses_tracker_view_expenses"
             android:text="@string/expenses_tracker.view_expenses"/>
-        <Button
-        	android:id="@+id/expenses_tracker_exit"
-            android:text="@string/expenses_tracker.exit"/>
     </TableRow>
     
     <TableRow android:gravity="center_horizontal">
-        <TextView
-            android:text="@string/expenses_tracker.view_categories"
-            android:gravity="center_horizontal"
-            android:padding="3dip"/>
-        <TextView
-            android:text="@string/expenses_tracker.view_expenses"
-            android:gravity="center_horizontal"
-            android:padding="3dip"/>
+        <Button
+        	android:id="@+id/expenses_tracker_add_expense"
+            android:text="@string/expenses_tracker.add_expense"/>
+        <Button
+        	android:id="@+id/expenses_tracker_exit"
+            android:text="@string/expenses_tracker.exit"/>
     </TableRow>
     
 </TableLayout>

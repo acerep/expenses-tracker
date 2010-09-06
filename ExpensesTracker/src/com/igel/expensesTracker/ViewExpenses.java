@@ -129,7 +129,6 @@ public class ViewExpenses extends ListActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
     	// called when started activity is finished
         super.onActivityResult(requestCode, resultCode, intent);
-        fetchDataFromDb();
     }
 
 	@Override
@@ -153,6 +152,23 @@ public class ViewExpenses extends ListActivity {
 		}
 		return null;
 	}
+	
+	@Override
+	public void onPause() {
+		super.onPause();
+		mDbAdapter.close();
+		mDbAdapter = null;
+	}
+	
+    @Override
+    public void onResume() {
+    	super.onResume();
+    	if (mDbAdapter == null) {
+	        mDbAdapter = new ExpensesDbAdapter(this);        
+	        mDbAdapter.open();
+	        fetchDataFromDb();
+    	}
+    }
 	
     private void fetchDataFromDb() {
         // Get all of expenses from the database and create the item list
@@ -194,6 +210,11 @@ public class ViewExpenses extends ListActivity {
 				mCalendar.setTimeInMillis(millis);
 				String dateString = mDateFormat.format(mCalendar.getTime());
 				v.setText(dateString);
+			}
+			else if (v.getId() == R.id.view_expense_row_details) {
+				if (text.length() != 0) 
+					text = " - " + text;
+				v.setText(text);
 			}
 			else
 				super.setViewText(v, text);
