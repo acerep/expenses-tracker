@@ -23,7 +23,7 @@
         android:layout_alignParentRight="true"        
         android:layout_below="@id/edit_expense_category_name"
         android:singleLine="true"
-        android:capitalize="words"
+        android:capitalize="sentences"
 	    android:hint="@string/edit_expense_category.description"/>
 
 	<Button

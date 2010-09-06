@@ -25,4 +25,9 @@
     <string name="view_expense_categories.title">Expense Categories</string>
     <string name="view_expense_categories.no_categories">No expense categories available</string>
     <string name="view_expense_categories.add_expense_category">Add category</string>
+    <string name="view_expense_categories.delete_expense_category">Delete expense category</string>    
+    <string name="view_expense_categories.delete_expense_category_message">Are you sure you want to delete the expense category?</string>
+    <string name="view_expense_categories.delete_unknown_expense_category_message">You cannot delete this essential expense category since it is required by the application.</string>
+    <string name="unknown_expense_category_name">Unknown</string>    
+    <string name="unknown_expense_category_description">Default expense category for expenses of unknown type</string>    
 </resources>

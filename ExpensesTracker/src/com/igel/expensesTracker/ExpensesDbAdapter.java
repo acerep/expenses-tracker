@@ -16,10 +16,16 @@ public class ExpensesDbAdapter {
 	public static final String DATABASE_NAME = "expensesTracker";
 	public static final int DATABASE_VERSION = 1;
 
+	public static final int TRUE = 0;
+	public static final int FALSE = 1;
+
 	private static final String EXPENSE_CATEGORY_TABLE = "expenseCategory";
 	public static final String EXPENSE_CATEGORY_ID = "_id";
 	public static final String EXPENSE_CATEGORY_NAME = "name";
 	public static final String EXPENSE_CATEGORY_DESCRIPTION = "description";
+	public static final String EXPENSE_CATEGORY_DELETED = "deleted";
+
+	public static final int UNKNOWN_EXPENSE_CATEGORY_ID = 1;
 
 	private static final String EXPENSE_TABLE = "expense";
 	public static final String EXPENSE_ID = "_id";
@@ -82,6 +88,7 @@ public class ExpensesDbAdapter {
 		ContentValues initialValues = new ContentValues();
 		initialValues.put(EXPENSE_CATEGORY_NAME, name);
 		initialValues.put(EXPENSE_CATEGORY_DESCRIPTION, description);
+		initialValues.put(EXPENSE_CATEGORY_DELETED, FALSE);
 
 		return mDb.insert(EXPENSE_CATEGORY_TABLE, null, initialValues);
 	}
@@ -99,6 +106,12 @@ public class ExpensesDbAdapter {
 		args.put(EXPENSE_CATEGORY_NAME, name);
 		args.put(EXPENSE_CATEGORY_DESCRIPTION, description);
 
+		return mDb.update(EXPENSE_CATEGORY_TABLE, args, EXPENSE_CATEGORY_ID + "=" + rowId, null) > 0;
+	}
+
+	public boolean deleteExpenseCategory(long rowId) {
+		ContentValues args = new ContentValues();
+		args.put(EXPENSE_CATEGORY_DELETED, TRUE);
 		return mDb.update(EXPENSE_CATEGORY_TABLE, args, EXPENSE_CATEGORY_ID + "=" + rowId, null) > 0;
 	}
 
@@ -128,7 +141,7 @@ public class ExpensesDbAdapter {
 	 */
 	public Cursor fetchAllExpenseCategories() {
 		return mDb.query(EXPENSE_CATEGORY_TABLE, new String[] { EXPENSE_CATEGORY_ID, EXPENSE_CATEGORY_NAME,
-				EXPENSE_CATEGORY_DESCRIPTION }, null, null, null, null, null);
+				EXPENSE_CATEGORY_DESCRIPTION }, EXPENSE_CATEGORY_DELETED + "=" + FALSE, null, null, null, null);
 	}
 
 	/**
@@ -188,16 +201,16 @@ public class ExpensesDbAdapter {
 		return cursor;
 	}
 
-    /**
-     * Delete the expense with the given rowId
-     * 
-     * @param rowId id of expense to delete
-     * @return true if deleted, false otherwise
-     */
-    public boolean deleteExpense(long rowId) {
-        return mDb.delete(EXPENSE_TABLE, EXPENSE_ID + "=" + rowId, null) > 0;
-    }
-	
+	/**
+	 * Delete the expense with the given rowId
+	 * 
+	 * @param rowId id of expense to delete
+	 * @return true if deleted, false otherwise
+	 */
+	public boolean deleteExpense(long rowId) {
+		return mDb.delete(EXPENSE_TABLE, EXPENSE_ID + "=" + rowId, null) > 0;
+	}
+
 	/**
 	 * Return a Cursor over the list of all expenses in the database joined with the referenced expense category name.
 	 * 
@@ -215,8 +228,11 @@ public class ExpensesDbAdapter {
 
 	private class DatabaseHelper extends SQLiteOpenHelper {
 
+		private Context mContext;
+
 		DatabaseHelper(Context context) {
 			super(context, DATABASE_NAME, null, DATABASE_VERSION);
+			mContext = context;
 		}
 
 		@Override
@@ -224,20 +240,24 @@ public class ExpensesDbAdapter {
 			Log.i(TAG, "Creating expenses-tracker database");
 			db.execSQL("create table " + EXPENSE_CATEGORY_TABLE + "(" + EXPENSE_CATEGORY_ID
 					+ " integer primary key autoincrement, " + EXPENSE_CATEGORY_NAME + " text not null, "
-					+ EXPENSE_CATEGORY_DESCRIPTION + " text not null);");
+					+ EXPENSE_CATEGORY_DESCRIPTION + " text not null, " + EXPENSE_CATEGORY_DELETED
+					+ " integer not null);");
 			db.execSQL("create table " + EXPENSE_TABLE + "(" + EXPENSE_ID + " integer primary key autoincrement, "
 					+ EXPENSE_DATE + " integer not null, " + EXPENSE_AMOUNT + " integer not null, "
 					+ EXPENSE_EXPENSE_CATEGORY_ID + " integer not null, " + EXPENSE_DETAILS
 					+ " text not null, constraint exp2expCat foreign key (" + EXPENSE_EXPENSE_CATEGORY_ID
 					+ ") references " + EXPENSE_CATEGORY_TABLE + " (" + EXPENSE_CATEGORY_ID + "));");
-			db.execSQL("insert into " + EXPENSE_CATEGORY_TABLE + " (" + EXPENSE_CATEGORY_NAME + ", "
-					+ EXPENSE_CATEGORY_DESCRIPTION
-					+ ") values ('Unknown', 'Default expense category for expenses of unknown type');");
+			db.execSQL("insert into " + EXPENSE_CATEGORY_TABLE + " (" + EXPENSE_CATEGORY_ID + ", "
+					+ EXPENSE_CATEGORY_NAME + ", " + EXPENSE_CATEGORY_DESCRIPTION + ", " + EXPENSE_CATEGORY_DELETED
+					+ ") values ( " + UNKNOWN_EXPENSE_CATEGORY_ID + ", '"
+					+ mContext.getString(R.string.unknown_expense_category_name) + "', '"
+					+ mContext.getString(R.string.unknown_expense_category_description) + "', " + FALSE + ");");
 		}
 
 		@Override
 		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 			db.execSQL("DROP TABLE IF EXISTS " + EXPENSE_CATEGORY_TABLE);
+			db.execSQL("DROP TABLE IF EXISTS " + EXPENSE_TABLE);
 			onCreate(db);
 		}
 	}
