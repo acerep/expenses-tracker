@@ -212,18 +212,42 @@ public class ExpensesDbAdapter {
 	}
 
 	/**
-	 * Return a Cursor over the list of all expenses in the database joined with the referenced expense category name.
+	 * Return a Cursor over the list of all expenses in the database joined with the referenced expense category name in
+	 * the given range.
 	 * 
+	 * @param from From time in millis
+	 * @param to To time in millis
 	 * @return Cursor over all expenses
 	 */
-	public Cursor fetchAllExpenses() {
+	public Cursor fetchAllExpensesInRange(long from, long to) {
 		SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 		qb.setTables(EXPENSE_TABLE + " left outer join " + EXPENSE_CATEGORY_TABLE + " on (" + EXPENSE_TABLE + "."
 				+ EXPENSE_EXPENSE_CATEGORY_ID + " = " + EXPENSE_CATEGORY_TABLE + "." + EXPENSE_CATEGORY_ID + ")");
 		qb.setProjectionMap(sExpensesProjectionMap);
 		return qb.query(mDb, new String[] { EXPENSE_TABLE + "." + EXPENSE_ID, EXPENSE_DATE, EXPENSE_AMOUNT,
-				EXPENSE_DETAILS, EXPENSE_CATEGORY_NAME }, null, null, null, null, EXPENSE_TABLE + "." + EXPENSE_ID
-				+ " desc");
+				EXPENSE_DETAILS, EXPENSE_CATEGORY_NAME }, EXPENSE_DATE + ">=" + from + " and " + EXPENSE_DATE + "<"
+				+ to, null, null, null, EXPENSE_TABLE + "." + EXPENSE_DATE + " desc");
+	}
+
+	/**
+	 * Returns the sum of all expenses in the given range.
+	 * 
+	 * @param from From time in millis
+	 * @param to To time in millis
+	 * @return The sum of all expenses
+	 */
+	public long getExpensesSum(long from, long to) {
+		Cursor cursor = mDb.query(false, EXPENSE_TABLE, new String[] { "sum(" + EXPENSE_AMOUNT + ")"}, EXPENSE_DATE + " >= ? and " + EXPENSE_DATE + " < ?"
+				, new String[] {"" + from, "" + to}, null, null, null, null);
+
+		long result = 0;
+		if (cursor != null && cursor.moveToFirst()) {
+			String amountString = cursor.getString(cursor.getColumnIndexOrThrow("sum(" + EXPENSE_AMOUNT + ")"));
+			result = Long.valueOf(amountString);
+		}
+		if (cursor != null)
+			cursor.close();
+		return result;
 	}
 
 	private class DatabaseHelper extends SQLiteOpenHelper {

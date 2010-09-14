@@ -5,6 +5,8 @@
     <string name="expenses_tracker.view_categories">Categories</string>
     <string name="expenses_tracker.view_expenses">Expenses</string>
     <string name="expenses_tracker.add_expense">Add Expense</string>
+    <string name="expenses_tracker.clear_data">Clear Data</string>
+    <string name="expenses_tracker.export_data">Export Data</string>
     <string name="expenses_tracker.exit">Exit</string>
     <string name="expenses_tracker.save">Save</string>
     <string name="expenses_tracker.cancel">Cancel</string>
@@ -19,7 +21,11 @@
     <string name="edit_expense_category.title">Edit Expense Category</string>
     <string name="edit_expense_category.name">Name</string>
     <string name="edit_expense_category.description">Description</string>
+    <string name="view_expenses.title_prefix">Expenses of </string>
     <string name="view_expenses.no_expenses">No expenses present</string>
+    <string name="view_expenses.prev_month">Prev</string>
+    <string name="view_expenses.next_month">Next</string>
+    <string name="view_expenses.totals_title">Total</string>
     <string name="view_expenses.add_expense">Add expense</string>
     <string name="view_expenses.delete_expense">Delete expense</string>    
     <string name="view_expenses.delete_expense_message">Are you sure you want to delete the expense?</string>    

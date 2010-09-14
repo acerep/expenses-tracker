@@ -4,8 +4,8 @@
 
     <TableRow android:gravity="center_horizontal">
         <Button
-        	android:id="@+id/expenses_tracker_view_categories"
-            android:text="@string/expenses_tracker.view_categories"/>
+        	android:id="@+id/expenses_tracker_add_expense"
+            android:text="@string/expenses_tracker.add_expense"/>
         <Button
         	android:id="@+id/expenses_tracker_view_expenses"
             android:text="@string/expenses_tracker.view_expenses"/>
@@ -13,8 +13,20 @@
     
     <TableRow android:gravity="center_horizontal">
         <Button
-        	android:id="@+id/expenses_tracker_add_expense"
-            android:text="@string/expenses_tracker.add_expense"/>
+        	android:id="@+id/expenses_tracker_view_categories"
+            android:text="@string/expenses_tracker.view_categories"/>
+    </TableRow>
+    
+    <TableRow android:gravity="center_horizontal">
+        <Button
+        	android:id="@+id/expenses_tracker_clear_data"
+            android:text="@string/expenses_tracker.clear_data"/>
+        <Button
+        	android:id="@+id/expenses_tracker_export_data"
+            android:text="@string/expenses_tracker.export_data"/>
+    </TableRow>
+
+    <TableRow android:gravity="center_horizontal">
         <Button
         	android:id="@+id/expenses_tracker_exit"
             android:text="@string/expenses_tracker.exit"/>

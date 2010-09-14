@@ -43,16 +43,9 @@ public class ViewExpenseCategories extends ListActivity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		// create new database adapter and open it
-		mDbAdapter = new ExpensesDbAdapter(this);
-		mDbAdapter.open();
-
 		// set view
 		setContentView(R.layout.view_expense_categories);
 		setTitle(R.string.view_expense_categories_title);
-
-		// update view
-		fetchDataFromDb();
 
 		registerForContextMenu(getListView());
 	}

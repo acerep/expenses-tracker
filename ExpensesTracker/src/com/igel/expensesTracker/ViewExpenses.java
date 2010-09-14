@@ -1,7 +1,10 @@
 package com.igel.expensesTracker;
 
 import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Currency;
+import java.util.Locale;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -16,6 +19,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ContextMenu.ContextMenuInfo;
+import android.view.View.OnClickListener;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
@@ -24,6 +29,9 @@ import android.widget.AdapterView.AdapterContextMenuInfo;
 import com.igel.expensesTracker.R.string;
 
 public class ViewExpenses extends ListActivity {
+
+	// keys used to store information in the activity state or pass information by an intent
+	public static final String KEY_SELECTED_MONTH = "keySelectedMonth";
 
 	// menu item id
     private static final int ADD_EXPENSE_ID = Menu.FIRST;
@@ -36,8 +44,20 @@ public class ViewExpenses extends ListActivity {
 	// constants used to create dialogs
 	private static final int DELETE_EXPENSE_DIALOG = 0;
 	
+	// widgets
+	private TextView mTotalsWidget;
+	
 	// used to pass the ID of the expense to the delete dialog (bad but bundle not available)
-	private long mExpenseId;
+	private long mExpenseToBeDeletedId;
+	
+	// used to format date for display
+	private DateFormat mDateFormat;
+	// the currently selected month
+	private Calendar mSelectedMonth;
+	private long mFromMillis;
+	private long mToMillis;
+	
+	private String mCurrencySymbol;
 	
 	// database adapter
 	private ExpensesDbAdapter mDbAdapter;
@@ -46,17 +66,21 @@ public class ViewExpenses extends ListActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        
-        // create new database adapter and open it
-        mDbAdapter = new ExpensesDbAdapter(this);
-        mDbAdapter.open();
-        
+                
         // set view
         setContentView(R.layout.view_expenses);
-        setTitle("honk");
+		mDateFormat = new SimpleDateFormat(" MMMM yyyy");
+
+		initializeWidgets();
+		setButtonListeners();
         
-        // update view
-        fetchDataFromDb();
+        mSelectedMonth = Calendar.getInstance();
+        mSelectedMonth.set(Calendar.DAY_OF_MONTH, 1);
+        updateMillisRange();
+
+        mCurrencySymbol = Currency.getInstance(Locale.getDefault()).getSymbol();
+
+        updateTitle();
         
         registerForContextMenu(getListView());
     }
@@ -82,7 +106,7 @@ public class ViewExpenses extends ListActivity {
     	switch(item.getItemId()) {
     	case DELETE_EXPENSE_ID:
     		AdapterContextMenuInfo info = (AdapterContextMenuInfo)item.getMenuInfo();
-    		mExpenseId = info.id;
+    		mExpenseToBeDeletedId = info.id;
     		showDialog(DELETE_EXPENSE_DIALOG);
     		return true;
     	}
@@ -100,13 +124,31 @@ public class ViewExpenses extends ListActivity {
         return super.onMenuItemSelected(featureId, item);
     }
 
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+		// this method is called by the system before onPause
+		Long selectedMonthMillis = mSelectedMonth.getTimeInMillis();		
+		outState.putSerializable(KEY_SELECTED_MONTH, selectedMonthMillis);
+	}
+
+	@Override
+	protected void onRestoreInstanceState(Bundle savedInstanceState) {
+		// this method is called when the system restores the activity state (after onStart)
+		super.onRestoreInstanceState(savedInstanceState);
+		Long selectedMonthMillis = (Long) savedInstanceState.getSerializable(KEY_SELECTED_MONTH);
+		mSelectedMonth = Calendar.getInstance();
+		mSelectedMonth.setTimeInMillis(selectedMonthMillis);
+		updateMillisRange();
+	}
+
     private void addExpense() {
     	Intent intent = new Intent(this, EditExpense.class);
     	startActivityForResult(intent, ACTIVITY_ADD_EXPENSE);
     }
     
     private void deleteSelectedExpense() {
-		mDbAdapter.deleteExpense(mExpenseId);
+		mDbAdapter.deleteExpense(mExpenseToBeDeletedId);		
 		fetchDataFromDb();
     }
     
@@ -169,10 +211,53 @@ public class ViewExpenses extends ListActivity {
 	        fetchDataFromDb();
     	}
     }
+    
+    private void updateMillisRange() {
+    	mFromMillis = mSelectedMonth.getTimeInMillis();
+    	Calendar toCalendar = (Calendar)mSelectedMonth.clone();
+    	toCalendar.add(Calendar.MONTH, 1);
+    	mToMillis = toCalendar.getTimeInMillis();        
+    }
+    
+    private void initializeWidgets() {
+    	mTotalsWidget = (TextView) findViewById(R.id.view_expenses_totals); 
+    }
+    
+	private void setButtonListeners() {
+		Button previousMonthButton = (Button) findViewById(R.id.view_expenses_prev_month);
+		Button nextMonthButton = (Button) findViewById(R.id.view_expenses_next_month);
+		previousMonthButton.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				mSelectedMonth.add(Calendar.MONTH, -1);
+				updateMillisRange();
+				updateTitle();
+				fetchDataFromDb();
+			}
+		});
+
+		nextMonthButton.setOnClickListener(new OnClickListener() {			
+			public void onClick(View v) {
+				mSelectedMonth.add(Calendar.MONTH, 1);
+				updateMillisRange();
+				updateTitle();
+				fetchDataFromDb();
+			}
+		});
+	}
+	
+    private void updateTitle() {
+    	String dateString = mDateFormat.format(mSelectedMonth.getTime());
+    	setTitle(getText(R.string.view_expenses_title_prefix) + dateString);
+    }
 	
     private void fetchDataFromDb() {
+    	long sum = mDbAdapter.getExpensesSum(mFromMillis, mToMillis);
+    	
+    	String totalsString = getString(R.string.view_expenses_totals_title) + ": " + sum + " " + mCurrencySymbol;
+    	mTotalsWidget.setText(totalsString);
+    	    	
         // Get all of expenses from the database and create the item list
-        Cursor expensesCursor = mDbAdapter.fetchAllExpenses();
+        Cursor expensesCursor = mDbAdapter.fetchAllExpensesInRange(mFromMillis, mToMillis);
         startManagingCursor(expensesCursor);
 
         // Create an array to specify the fields we want to display in the list
@@ -191,15 +276,13 @@ public class ViewExpenses extends ListActivity {
 
     private class ExpensesCursorAdapter extends SimpleCursorAdapter {
 
-    	private Activity mContext;
     	// used to format date for display
     	private DateFormat mDateFormat;
     	private Calendar mCalendar;
     	
 		public ExpensesCursorAdapter(Activity context, int layout, Cursor c, String[] from, int[] to) {
 			super(context, layout, c, from, to);
-			mContext = context;
-			mDateFormat = android.text.format.DateFormat.getDateFormat(mContext);
+			mDateFormat = new SimpleDateFormat("EEE, dd.MM.yyyy");
 			mCalendar = Calendar.getInstance();
 		}
 		
@@ -214,6 +297,11 @@ public class ViewExpenses extends ListActivity {
 			else if (v.getId() == R.id.view_expense_row_details) {
 				if (text.length() != 0) 
 					text = " - " + text;
+				v.setText(text);
+			}
+			else if (v.getId() == R.id.view_expense_row_amount) {
+				if (text.length() != 0) 
+					text = text + " " + mCurrencySymbol;
 				v.setText(text);
 			}
 			else

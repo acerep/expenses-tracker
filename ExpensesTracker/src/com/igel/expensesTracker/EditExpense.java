@@ -1,6 +1,7 @@
 package com.igel.expensesTracker;
 
 import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
 import android.app.Activity;
@@ -62,7 +63,7 @@ public class EditExpense extends Activity {
 
 		// set view
 		setContentView(R.layout.edit_expense);
-		mDateFormat = android.text.format.DateFormat.getDateFormat(this);
+		mDateFormat = new SimpleDateFormat("EEE, dd.MM.yyyy");
 
 		initializeWidgets();
 		initializeSpinner();
