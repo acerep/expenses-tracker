@@ -11,7 +11,6 @@
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"        
         android:singleLine="true"
-        android:maxEms="10"
         android:capitalize="words"
 		android:hint="@string/edit_expense_category.name"/>
    	
@@ -22,8 +21,7 @@
         android:layout_alignParentLeft="true"        
         android:layout_alignParentRight="true"        
         android:layout_below="@id/edit_expense_category_name"
-        android:singleLine="true"
-        android:capitalize="sentences"
+        android:capitalize="words"
 	    android:hint="@string/edit_expense_category.description"/>
 
 	<Button
