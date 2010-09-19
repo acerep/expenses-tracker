@@ -19,11 +19,11 @@
     
     <TableRow android:gravity="center_horizontal">
         <Button
-        	android:id="@+id/expenses_tracker_clear_data"
-            android:text="@string/expenses_tracker.clear_data"/>
+        	android:id="@+id/expenses_tracker_clear_expesnes"
+            android:text="@string/expenses_tracker.clear_expenses"/>
         <Button
-        	android:id="@+id/expenses_tracker_export_data"
-            android:text="@string/expenses_tracker.export_data"/>
+        	android:id="@+id/expenses_tracker_export_expenses"
+            android:text="@string/expenses_tracker.export_expenses"/>
     </TableRow>
 
     <TableRow android:gravity="center_horizontal">
