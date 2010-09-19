@@ -17,10 +17,13 @@
     <string name="edit_expense.expense_title">Expense Information</string>
     <string name="edit_expense.expense_category_title">Expense Category</string>
     <string name="edit_expense.expense_detail_title">Expense Details</string>
+    <string name="edit_expense.amount_warning">Cannot save data since the expense amount is missing.</string>
     <string name="add_expense_category.title">Add Expense Category</string>
     <string name="edit_expense_category.title">Edit Expense Category</string>
     <string name="edit_expense_category.name">Name</string>
     <string name="edit_expense_category.description">Description</string>
+    <string name="edit_expense_category.name_warning">Cannot save data since the expense-category name is missing.</string>
+    <string name="edit_expense_category.description_warning">Cannot save data since the expense-category description is missing.</string>
     <string name="export_expenses.title">Export Expenses</string>
     <string name="export_expenses.from">From Date</string>
     <string name="export_expenses.to">To Date</string>

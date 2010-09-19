@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 public class EditExpenseCategory extends Activity {
 	
@@ -79,6 +80,25 @@ public class EditExpenseCategory extends Activity {
     	mExpenseCategoryDescriptionWidget.setText(expenseCategoryDescription);		
 	}
 
+	private boolean validateData() {
+		String expenseCategoryName = mExpenseCategoryNameWidget.getText().toString();
+		if (expenseCategoryName.length() == 0) {
+			Toast toast = Toast.makeText(this,
+					R.string.edit_expense_category_name_warning, Toast.LENGTH_LONG);
+			toast.show();
+			return false;
+		}
+		String expenseDescriptionName = mExpenseCategoryDescriptionWidget.getText().toString();
+		if (expenseDescriptionName.length() == 0) {
+			Toast toast = Toast.makeText(this,
+					R.string.edit_expense_category_description_warning, Toast.LENGTH_LONG);
+			toast.show();
+			return false;
+		}
+		return true;
+	}
+
+	
     private void saveExpenseCategory() {
     	// get entered information
     	String expenseCategoryName = mExpenseCategoryNameWidget.getText().toString();
@@ -112,9 +132,13 @@ public class EditExpenseCategory extends Activity {
 		Button saveButton = (Button)findViewById(R.id.edit_expense_category_save);
 		saveButton.setOnClickListener(new OnClickListener() {			
 			public void onClick(View v) {
-				setResult(RESULT_OK);
-				saveExpenseCategory();
-				finish();
+				if (!validateData()) {
+					return;
+				} else {
+					setResult(RESULT_OK);
+					saveExpenseCategory();
+					finish();
+				}
 			}
 		});
 	}

@@ -18,6 +18,7 @@ import android.widget.EditText;
 import android.widget.SimpleCursorAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.AdapterView.OnItemSelectedListener;
 
 public class EditExpense extends Activity {
@@ -69,7 +70,7 @@ public class EditExpense extends Activity {
 		initializeSpinner();
 		addExpenseCategoriesToSpinner();
 		setButtonListeners();
-		
+
 		// extras may be given when the activity is called from someone else
 		Bundle extras = getIntent().getExtras();
 		if (extras != null) {
@@ -91,12 +92,16 @@ public class EditExpense extends Activity {
 	protected void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
 		// this method is called by the system before onPause
-		Integer amount = new Integer(mExpenseAmountWidget.getText().toString());
+		String amountString = mExpenseAmountWidget.getText().toString();
+		if (amountString.length() != 0) {
+			Integer amount = Integer.valueOf(amountString);
+			outState.putSerializable(KEY_EXPENSE_AMOUNT, amount);
+		}
+
 		String details = mExpenseDetailsWidget.getText().toString();
-		
+
 		outState.putSerializable(KEY_EXPENSE_ID, mExpenseId);
 		outState.putSerializable(KEY_EXPENSE_DATE, mExpenseDate.getTimeInMillis());
-		outState.putSerializable(KEY_EXPENSE_AMOUNT, amount);
 		outState.putSerializable(KEY_EXPENSE_CATEGORY, mExpenseCategoryId);
 		outState.putSerializable(KEY_EXPENSE_DETAILS, details);
 	}
@@ -146,16 +151,19 @@ public class EditExpense extends Activity {
 				Object item = parent.getItemAtPosition(position);
 				if (item instanceof Cursor) {
 					Cursor cursor = (Cursor) item;
-					mExpenseCategoryId = cursor.getLong(cursor.getColumnIndexOrThrow(ExpensesDbAdapter.EXPENSE_CATEGORY_ID));
-					String categoryDescription = cursor.getString(cursor.getColumnIndexOrThrow(ExpensesDbAdapter.EXPENSE_CATEGORY_DESCRIPTION));
+					mExpenseCategoryId = cursor.getLong(cursor
+							.getColumnIndexOrThrow(ExpensesDbAdapter.EXPENSE_CATEGORY_ID));
+					String categoryDescription = cursor.getString(cursor
+							.getColumnIndexOrThrow(ExpensesDbAdapter.EXPENSE_CATEGORY_DESCRIPTION));
 					if (mExpenseCategoryDescriptionWidget != null)
 						mExpenseCategoryDescriptionWidget.setText(categoryDescription);
 				}
 			}
+
 			public void onNothingSelected(AdapterView<?> parent) {}
 		});
 	}
-	
+
 	private void addExpenseCategoriesToSpinner() {
 		Cursor expenseCategories = mDbAdapter.fetchAllExpenseCategories();
 		startManagingCursor(expenseCategories);
@@ -180,47 +188,62 @@ public class EditExpense extends Activity {
 			}
 		});
 
-		Button cancelButton = (Button)findViewById(R.id.edit_expense_cancel);
-		cancelButton.setOnClickListener(new OnClickListener() {			
+		Button cancelButton = (Button) findViewById(R.id.edit_expense_cancel);
+		cancelButton.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				setResult(RESULT_CANCELED);
 				finish();
 			}
 		});
-		
-		Button saveButton = (Button)findViewById(R.id.edit_expense_save);
-		saveButton.setOnClickListener(new OnClickListener() {			
+
+		Button saveButton = (Button) findViewById(R.id.edit_expense_save);
+		saveButton.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
-				setResult(RESULT_OK);
-				saveExpense();
-				finish();
+				if (!validateData()) {
+					return;
+				} else {
+					setResult(RESULT_OK);
+					saveExpense();
+					finish();
+				}
 			}
 		});
 	}
-	
-	private void saveExpense() {
-    	// get entered information
-		long expenseDateInMillis = mExpenseDate.getTimeInMillis();
-		int amount = new Integer(mExpenseAmountWidget.getText().toString());
-		String details = mExpenseDetailsWidget.getText().toString();
-		
-    	if (mExpenseId == null) {
-    		// create new expense
-    		long id = mDbAdapter.createExpense(expenseDateInMillis, amount, mExpenseCategoryId, details);
-    		if (id > 0)
-    			mExpenseId = id;
-    	}
-    	else {
-    		mDbAdapter.updateExpense(mExpenseId, expenseDateInMillis, amount, mExpenseCategoryId, details);
-    	}		
+
+	private boolean validateData() {
+		String amountString = mExpenseAmountWidget.getText().toString();
+		if (amountString.length() == 0) {
+			Toast toast = Toast.makeText(this,
+					R.string.edit_expense_amount_warning, Toast.LENGTH_LONG);
+			toast.show();
+			return false;
+		}
+		return true;
 	}
-	
+
+	private void saveExpense() {
+		// get entered information
+		long expenseDateInMillis = mExpenseDate.getTimeInMillis();
+		String amountString = mExpenseAmountWidget.getText().toString();
+		int amount = Integer.valueOf(amountString);
+		String details = mExpenseDetailsWidget.getText().toString();
+
+		if (mExpenseId == null) {
+			// create new expense
+			long id = mDbAdapter.createExpense(expenseDateInMillis, amount, mExpenseCategoryId, details);
+			if (id > 0)
+				mExpenseId = id;
+		} else {
+			mDbAdapter.updateExpense(mExpenseId, expenseDateInMillis, amount, mExpenseCategoryId, details);
+		}
+	}
+
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
 		mDbAdapter.close();
 	}
-	
+
 	private void fetchDataFromDb() {
 		Cursor expense = mDbAdapter.fetchExpense(mExpenseId);
 		startManagingCursor(expense);
@@ -228,10 +251,11 @@ public class EditExpense extends Activity {
 		long millis = new Long(millisString).longValue();
 		mExpenseDate = Calendar.getInstance();
 		mExpenseDate.setTimeInMillis(millis);
-		
+
 		String amountString = expense.getString(expense.getColumnIndexOrThrow(ExpensesDbAdapter.EXPENSE_AMOUNT));
 		mExpenseAmountWidget.setText(amountString);
-		mExpenseCategoryId = expense.getLong(expense.getColumnIndexOrThrow(ExpensesDbAdapter.EXPENSE_EXPENSE_CATEGORY_ID));
+		mExpenseCategoryId = expense.getLong(expense
+				.getColumnIndexOrThrow(ExpensesDbAdapter.EXPENSE_EXPENSE_CATEGORY_ID));
 		mExpenseCategorySpinner.setSelection(mExpenseCategoryId.intValue() - 1);
 		String expenseDetails = expense.getString(expense.getColumnIndexOrThrow(ExpensesDbAdapter.EXPENSE_DETAILS));
 		mExpenseDetailsWidget.setText(expenseDetails);
