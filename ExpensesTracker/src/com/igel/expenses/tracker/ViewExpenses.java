@@ -199,6 +199,7 @@ public class ViewExpenses extends ListActivity {
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
+		mDbAdapter.close();
 	}
 	
     private void updateMillisRange() {

@@ -91,6 +91,7 @@ public class ViewExpenseCategories extends ListActivity {
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
+		mDbAdapter.close();
 	}
 	
 	@Override
