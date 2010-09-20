@@ -7,6 +7,7 @@ import java.util.Calendar;
 import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -112,11 +113,17 @@ public class ExportExpenses extends Activity {
 		saveButton.setOnClickListener(new OnClickListener() {			
 			public void onClick(View v) {
 				setResult(RESULT_OK);
-//				saveExpense();
+				exportExpenses();
 				finish();
 			}
 		});
-}
+	}
+	
+	private void exportExpenses() {
+		SharedPreferences prefs = getSharedPreferences("com.igel.expenses.tracker.preferences", MODE_PRIVATE);
+		boolean externalStorageWritable = ExportExpensesUtils.isExternalStorageWritable();
+		;
+	}
 	
 	private void updateView() {
 		if (mFromDate != null)

@@ -12,6 +12,10 @@
     <string name="expenses_tracker.cancel">Cancel</string>
     <string name="expenses_tracker.yes">Yes</string>
     <string name="expenses_tracker.no">No</string>
+    <string name="expenses_tracker.preferences">Settings</string>
+    <string name="expenses_tracker_preferences.folder">exportFolder</string>
+    <string name="expenses_tracker_preferences.folder_title">Export Directory</string>
+    <string name="expenses_tracker_preferences.folder_summary">Directory to store exported files in</string>
     <string name="add_expense.title">Add Expense</string>
     <string name="edit_expense.title">Edit Expense</string>
     <string name="edit_expense.expense_title">Expense Information</string>
