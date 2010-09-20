@@ -115,7 +115,8 @@ public class EditExpense extends Activity {
 		mExpenseDate = Calendar.getInstance();
 		mExpenseDate.setTimeInMillis(expenseDateInMillis);
 		Integer amount = (Integer) savedInstanceState.getSerializable(KEY_EXPENSE_AMOUNT);
-		mExpenseAmountWidget.setText(amount);
+		if (amount != null)
+			mExpenseAmountWidget.setText(amount);
 		mExpenseCategoryId = (Long) savedInstanceState.getSerializable(KEY_EXPENSE_CATEGORY);
 		String details = (String) savedInstanceState.getSerializable(KEY_EXPENSE_DETAILS);
 		mExpenseDetailsWidget.setText(details);
