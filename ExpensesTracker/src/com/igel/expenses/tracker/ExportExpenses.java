@@ -43,7 +43,7 @@ public class ExportExpenses extends Activity {
 		super.onCreate(savedInstanceState);
 
 		// set view
-		setContentView(R.layout.edit_expense);
+		setContentView(R.layout.export_expenses);
 		mDateFormat = new SimpleDateFormat("EEE, dd.MM.yyyy");
 
 		// extras may be given when the activity is called from someone else
