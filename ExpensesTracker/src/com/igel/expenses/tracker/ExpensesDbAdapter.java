@@ -145,6 +145,16 @@ public class ExpensesDbAdapter {
 	}
 
 	/**
+	 * Return a Cursor over the list of all expense categories in the database for export
+	 * 
+	 * @return Cursor over all categories
+	 */
+	public Cursor fetchAllExpenseCategoriesForExport() {
+		return mDb.query(EXPENSE_CATEGORY_TABLE, new String[] { EXPENSE_CATEGORY_ID, EXPENSE_CATEGORY_NAME,
+				EXPENSE_CATEGORY_DESCRIPTION, EXPENSE_CATEGORY_DELETED }, null, null, null, null, null);
+	}
+
+	/**
 	 * Create a new expense using provided information. If the expense is successfully created return the new rowId for
 	 * that expense, otherwise return a -1 to indicate failure.
 	 * 
@@ -227,6 +237,17 @@ public class ExpensesDbAdapter {
 		return qb.query(mDb, new String[] { EXPENSE_TABLE + "." + EXPENSE_ID, EXPENSE_DATE, EXPENSE_AMOUNT,
 				EXPENSE_DETAILS, EXPENSE_CATEGORY_NAME }, EXPENSE_DATE + ">=" + from + " and " + EXPENSE_DATE + "<"
 				+ to, null, null, null, EXPENSE_TABLE + "." + EXPENSE_DATE + " desc");
+	}
+
+	/**
+	 * Return a Cursor over the list of all expenses in the given range for export
+	 * 
+	 * @return Cursor over all expenses
+	 */
+	public Cursor fetchAllExpensesInRangeForExport(long from, long to) {
+		return mDb.query(EXPENSE_TABLE, new String[] { EXPENSE_ID, EXPENSE_DATE, EXPENSE_AMOUNT, EXPENSE_DETAILS,
+				EXPENSE_EXPENSE_CATEGORY_ID }, EXPENSE_DATE + ">=" + from + " and " + EXPENSE_DATE + "<" + to, null,
+				null, null, null);
 	}
 
 	/**

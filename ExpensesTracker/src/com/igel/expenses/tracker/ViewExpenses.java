@@ -72,7 +72,7 @@ public class ViewExpenses extends ListActivity {
 		initializeWidgets();
 		setButtonListeners();
         
-        mSelectedMonth = CalendarUtils.getFirstDayOfMonth();
+        mSelectedMonth = CalendarUtils.getFirstDayOfMonth(Calendar.getInstance());
         updateMillisRange();
 
         mCurrencySymbol = Currency.getInstance(Locale.getDefault()).getSymbol();

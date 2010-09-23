@@ -12,10 +12,13 @@
     <string name="expenses_tracker.cancel">Cancel</string>
     <string name="expenses_tracker.yes">Yes</string>
     <string name="expenses_tracker.no">No</string>
+    <string name="expenses_tracker.remove_files">Remove Export Files</string>
+    <string name="expenses_tracker.remove_files_message">Do you really want to remove exported files in directory %s?</string>
     <string name="expenses_tracker.preferences">Settings</string>
     <string name="expenses_tracker_preferences.folder">exportFolder</string>
     <string name="expenses_tracker_preferences.folder_title">Export Directory</string>
     <string name="expenses_tracker_preferences.folder_summary">Directory to store exported files in</string>
+    <string name="expenses_tracker_preferences.warning_cannot_find_io_file_manager">Cannot find IO File Manager. Please install via App Marker.</string>
     <string name="add_expense.title">Add Expense</string>
     <string name="edit_expense.title">Edit Expense</string>
     <string name="edit_expense.expense_title">Expense Information</string>
@@ -32,6 +35,9 @@
     <string name="export_expenses.from">From Date</string>
     <string name="export_expenses.to">To Date</string>
     <string name="export_expenses.export">Export</string>
+    <string name="export_expenses.date_warning">Cannot export data since from date is after to date</string>
+    <string name="export_expenses.warning_cannot_find_directoy">Cannot find export directory</string>
+    <string name="export_expenses.warning_cannot_write_to_export_directoy">Cannot write to export directory</string>
     <string name="view_expenses.title_prefix">Expenses of </string>
     <string name="view_expenses.no_expenses">No expenses present</string>
     <string name="view_expenses.prev_month">Prev</string>

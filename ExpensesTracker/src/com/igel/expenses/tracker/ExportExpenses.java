@@ -1,5 +1,6 @@
 package com.igel.expenses.tracker;
 
+import java.io.File;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -7,12 +8,12 @@ import java.util.Calendar;
 import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.DatePicker;
+import android.widget.Toast;
 
 public class ExportExpenses extends Activity {
 
@@ -47,15 +48,15 @@ public class ExportExpenses extends Activity {
 		setContentView(R.layout.export_expenses);
 		mDateFormat = new SimpleDateFormat("EEE, dd.MM.yyyy");
 
+		mDbAdapter = new ExpensesDbAdapter(this);
+		mDbAdapter.open();
+
 		// extras may be given when the activity is called from someone else
 		Bundle extras = getIntent().getExtras();
 		if (extras == null) {
 			// initialize dates to current date
-			mFromDate = Calendar.getInstance();
-	        mFromDate.set(Calendar.DAY_OF_MONTH, 1);
-			mToDate = (Calendar)mFromDate.clone();
-			mToDate.add(Calendar.MONTH, 1);
-			mToDate.add(Calendar.DAY_OF_MONTH, -1);
+			mFromDate = CalendarUtils.getFirstDayOfMonth(Calendar.getInstance());
+			mToDate = CalendarUtils.getLastDayOfMonth(mFromDate);
 		}
 
 		initializeWidgets();
@@ -63,7 +64,13 @@ public class ExportExpenses extends Activity {
 		setTitle(R.string.export_expenses_title);
 		updateView();
 	}
-	
+
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
+		mDbAdapter.close();
+	}
+
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
@@ -82,13 +89,13 @@ public class ExportExpenses extends Activity {
 		Long toDateInMillis = (Long) savedInstanceState.getSerializable(KEY_TO_DATE);
 		mToDate = Calendar.getInstance();
 		mToDate.setTimeInMillis(toDateInMillis);
-	}		
-	
+	}
+
 	private void initializeWidgets() {
 		mFromDateButton = (Button) findViewById(R.id.export_expenses_from_date);
 		mToDateButton = (Button) findViewById(R.id.export_expenses_to_date);
 	}
-	
+
 	private void setButtonListeners() {
 		mFromDateButton.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
@@ -101,30 +108,49 @@ public class ExportExpenses extends Activity {
 			}
 		});
 
-		Button cancelButton = (Button)findViewById(R.id.export_expenses_cancel);
-		cancelButton.setOnClickListener(new OnClickListener() {			
+		Button cancelButton = (Button) findViewById(R.id.export_expenses_cancel);
+		cancelButton.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				setResult(RESULT_CANCELED);
 				finish();
 			}
 		});
-		
-		Button saveButton = (Button)findViewById(R.id.export_expenses_export);
-		saveButton.setOnClickListener(new OnClickListener() {			
+
+		Button saveButton = (Button) findViewById(R.id.export_expenses_export);
+		saveButton.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				setResult(RESULT_OK);
-				exportExpenses();
-				finish();
+				if (!validateData()) {
+					return;
+				} else {
+					boolean success = exportExpenses();
+					if (success)
+						finish();
+				}
 			}
 		});
 	}
-	
-	private void exportExpenses() {
-		SharedPreferences prefs = getSharedPreferences("com.igel.expenses.tracker.preferences", MODE_PRIVATE);
-		boolean externalStorageWritable = ExportExpensesUtils.isExternalStorageWritable();
-		;
+
+	private boolean exportExpenses() {
+		File exportDirectory = ExportExpensesUtils.initExportDirectory(this);
+		if (exportDirectory != null) {
+			String fileNamePostfix = ExportExpensesUtils.getExportFileName();
+			ExportExpensesUtils.exportExpenseCategories(exportDirectory, fileNamePostfix, mDbAdapter);
+			ExportExpensesUtils.exportExpenses(exportDirectory, fileNamePostfix, mDbAdapter, mFromDate, mToDate);
+			return true;
+		}
+		return false;
 	}
-	
+
+	private boolean validateData() {
+		if (mFromDate.after(mToDate)) {
+			Toast toast = Toast.makeText(this, R.string.export_expenses_date_warning, Toast.LENGTH_LONG);
+			toast.show();
+			return false;
+		}
+		return true;
+	}
+
 	private void updateView() {
 		if (mFromDate != null)
 			mFromDateButton.setText(mDateFormat.format(mFromDate.getTime()));
