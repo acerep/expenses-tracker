@@ -12,6 +12,7 @@
     <string name="expenses_tracker.cancel">Cancel</string>
     <string name="expenses_tracker.yes">Yes</string>
     <string name="expenses_tracker.no">No</string>
+    <string name="expenses_tracker.ok">OK</string>
     <string name="expenses_tracker.remove_files">Remove Export Files</string>
     <string name="expenses_tracker.remove_files_message">Do you really want to remove exported files in directory %s?</string>
     <string name="expenses_tracker.preferences">Settings</string>
@@ -35,9 +36,13 @@
     <string name="export_expenses.from">From Date</string>
     <string name="export_expenses.to">To Date</string>
     <string name="export_expenses.export">Export</string>
-    <string name="export_expenses.date_warning">Cannot export data since from date is after to date</string>
-    <string name="export_expenses.warning_cannot_find_directoy">Cannot find export directory</string>
-    <string name="export_expenses.warning_cannot_write_to_export_directoy">Cannot write to export directory</string>
+    <string name="export_expenses.date_error">Cannot export data since from date is after to date.</string>
+    <string name="export_expenses.error_cannot_find_directoy">Cannot find export directory %s.</string>
+    <string name="export_expenses.error_cannot_write_to_export_directoy">Cannot write to export directory %s.</string>
+    <string name="export_expenses.error_cannot_export_expenses">Cannot export expenses to file %s.</string>
+    <string name="export_expenses.error_cannot_export_expense_categories">Cannot export expense categories to file %s.</string>
+    <string name="export_expenses.info_exported_data">Successfully exported expense data.</string>
+    <string name="export_expenses.info_exported_no_data">No expenses in date range.</string>
     <string name="view_expenses.title_prefix">Expenses of </string>
     <string name="view_expenses.no_expenses">No expenses present</string>
     <string name="view_expenses.prev_month">Prev</string>

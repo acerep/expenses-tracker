@@ -6,14 +6,18 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.Toast;
+
+import com.igel.expenses.tracker.ExportExpensesUtils.ExportResult;
 
 public class ExportExpenses extends Activity {
 
@@ -24,6 +28,8 @@ public class ExportExpenses extends Activity {
 	// constants used to create dialogs
 	private static final int FROM_DATE_DIALOG = 0;
 	private static final int TO_DATE_DIALOG = 1;
+	
+	private static final int ERROR_DIALOG = 99;
 
 	// widgets
 	private Button mFromDateButton;
@@ -38,6 +44,10 @@ public class ExportExpenses extends Activity {
 
 	// database adapter
 	private ExpensesDbAdapter mDbAdapter;
+	
+	// holds error messages
+	private int mErrorMessageId;
+	private Object[] mErrorMessageArgs;
 
 	/** Called when the activity is first created. */
 	@Override
@@ -123,30 +133,77 @@ public class ExportExpenses extends Activity {
 				if (!validateData()) {
 					return;
 				} else {
-					boolean success = exportExpenses();
-					if (success)
-						finish();
+					Result<ExportResult> result= exportExpenses();
+					ExportResult exportResult = result.getResult();
+					if (exportResult == ExportResult.ERROR) {
+						// show error message
+						mErrorMessageId = result.getMessageId();
+						mErrorMessageArgs = result.getMessageArgs();
+						showDialog(ERROR_DIALOG);
+					}
+					else {
+						// show a result toast
+						int messageId = 0;
+						if (exportResult == ExportResult.EXPORTED_DATA)
+							messageId = R.string.export_expenses_info_exported_data;
+						else
+							messageId = R.string.export_expenses_info_exported_no_data;
+							
+						Toast toast = Toast.makeText(getApplicationContext(), getString(messageId), Toast.LENGTH_LONG);
+						toast.show();
+
+						// done if something was exported
+						if (exportResult == ExportResult.EXPORTED_DATA)
+							finish();						
+					}
 				}
 			}
 		});
 	}
 
-	private boolean exportExpenses() {
-		File exportDirectory = ExportExpensesUtils.initExportDirectory(this);
-		if (exportDirectory != null) {
-			String fileNamePrefix = ExportExpensesUtils.getExportFileNamePrefix();
-			ExportExpensesUtils.exportExpenseCategories(exportDirectory, fileNamePrefix, mDbAdapter);
-			Calendar to = CalendarUtils.getEndOfDay(mToDate);
-			ExportExpensesUtils.exportExpenses(exportDirectory, fileNamePrefix, mDbAdapter, mFromDate, to);
-			return true;
+	private Result<ExportResult> exportExpenses() {
+		// initialize directory
+		Result<File> initResult = ExportExpensesUtils.initExportDirectory(this);
+		File exportDirectory = initResult.getResult();
+		
+		// check if directory available
+		if (exportDirectory == null) {
+			// pass error message
+			return new Result<ExportResult>(ExportResult.ERROR, initResult
+					.getMessageId(), initResult.getMessageArgs());
 		}
-		return false;
+		else {
+			// get file name prefix
+			String fileNamePrefix = ExportExpensesUtils.getExportFileNamePrefix();
+			
+			// export up to end of selected day
+			Calendar to = CalendarUtils.getEndOfDay(mToDate);
+			
+			// export expenses
+			Result<ExportResult> exportResult = ExportExpensesUtils.exportExpenses(exportDirectory, fileNamePrefix, mDbAdapter, mFromDate, to);
+			
+			// check for error
+			if (exportResult.getResult() == ExportResult.ERROR) {
+				return exportResult;
+			}
+			
+			// check if something exported
+			if (exportResult.getResult() == ExportResult.EXPORTED_NO_DATA) {
+				return exportResult;
+			}
+			
+			// only export categories if data has been exported
+			exportResult = ExportExpensesUtils.exportExpenseCategories(
+					exportDirectory, fileNamePrefix, mDbAdapter);
+			return exportResult;
+		}
 	}
 
 	private boolean validateData() {
 		if (mFromDate.after(mToDate)) {
-			Toast toast = Toast.makeText(this, R.string.export_expenses_date_warning, Toast.LENGTH_LONG);
-			toast.show();
+			mErrorMessageId = R.string.export_expenses_date_error;
+			mErrorMessageArgs = null;
+			showDialog(ERROR_DIALOG);
 			return false;
 		}
 		return true;
@@ -168,6 +225,22 @@ public class ExportExpenses extends Activity {
 		case TO_DATE_DIALOG:
 			return new DatePickerDialog(this, mToDateSetListener, mToDate.get(Calendar.YEAR), mToDate
 					.get(Calendar.MONTH), mToDate.get(Calendar.DAY_OF_MONTH));
+		case ERROR_DIALOG:
+			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			// get message
+			String message = getString(mErrorMessageId);
+
+			// check if message has to be enriched with args
+			if (mErrorMessageArgs != null && mErrorMessageArgs.length > 0)
+				message = String.format(message, mErrorMessageArgs);
+			
+			// create alert dialog
+			builder.setMessage(message).setCancelable(false).setPositiveButton(R.string.expenses_tracker_ok,
+					new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int id) {
+						}
+				});
+			return builder.create();
 		}
 		return null;
 	}

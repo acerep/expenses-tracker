@@ -19,6 +19,8 @@ import android.widget.Toast;
 
 public class ExportExpensesUtils {
 
+	public enum ExportResult { EXPORTED_DATA, EXPORTED_NO_DATA, ERROR };
+
 	private static final String LOG_TAG = "ExportExpenses";
 	
 	private static final String LINE_SEPARTOR = System.getProperty("line.separator");
@@ -34,7 +36,7 @@ public class ExportExpensesUtils {
 		}
 	}
 
-	public static File getExportDirectory(Activity activity) {
+	public static Result<File> getExportDirectory(Activity activity) {
 		// get export directory URI from preferences
 		SharedPreferences prefs = activity.getSharedPreferences(activity.getApplicationContext().getPackageName()
 				+ "_preferences", Activity.MODE_PRIVATE);
@@ -45,36 +47,45 @@ public class ExportExpensesUtils {
 		File exportDirectory = null;
 
 		if (directoryUriString != null) {
-			// if something found in preferences
+			// if something is found in preferences
 			URI uri;
 			try {
 				uri = new URI(directoryUriString);
 				exportDirectory = new File(uri);
 			} catch (URISyntaxException e) {
-				showError(activity, activity.getString(R.string.export_expenses_warning_cannot_find_directoy) + " "
-						+ directoryUriString);
 				Log.e(LOG_TAG, e.getMessage());
-				return null;
+				return new Result<File>(null,
+						R.string.export_expenses_error_cannot_find_directoy,
+						directoryUriString);
 			}
 		} else {
 			// default directory
 			exportDirectory = getDefaultDirectory(activity.getApplicationContext().getPackageName());
 		}
-		return exportDirectory;
+		return new Result<File>(exportDirectory);
 	}
 
-	public static File initExportDirectory(Activity activity) {
-		// check if external storage is writable
+	public static Result<File> initExportDirectory(Activity activity) {
+		// get export directory
+		Result<File> exportDirectoryResult = getExportDirectory(activity);
+		File exportDirectory = exportDirectoryResult.getResult();
+		
+		// check if export directory not ok
+		if (exportDirectory == null)
+			return exportDirectoryResult;
+
+		// get flag indicating if external storage is writable
 		boolean externalStorageWritable = ExportExpensesUtils.isExternalStorageWritable();
-		File exportDirectory = getExportDirectory(activity);
+
 		// show error if export is not possible
 		if (!externalStorageWritable || !exportDirectory.canWrite()) {
-			showError(activity, activity.getString(R.string.export_expenses_warning_cannot_write_to_export_directoy)
-					+ " " + exportDirectory.getAbsolutePath());
-			return null;
+			return new Result<File>(
+					null,
+					R.string.export_expenses_error_cannot_write_to_export_directoy,
+					exportDirectory.getAbsolutePath());
 		}
 
-		// if it does not exist, create it
+		// if export directory does not exist, create it
 		if (!exportDirectory.exists())
 			exportDirectory.mkdirs();
 
@@ -84,10 +95,10 @@ public class ExportExpensesUtils {
 			try {
 				nomedia.createNewFile();
 			} catch (IOException e) {
-				;
+				// doesn't matter if something goes wrong here;
 			}
 
-		return exportDirectory;
+		return new Result<File>(exportDirectory);
 	}
 
 	public static String getExportFileNamePrefix() {
@@ -97,10 +108,11 @@ public class ExportExpensesUtils {
 		return postfix;
 	}
 
-	public static void exportExpenseCategories(File exportDirectory, String prefix, ExpensesDbAdapter dbAdapter) {
+	public static Result<ExportResult> exportExpenseCategories(
+			File exportDirectory, String prefix, ExpensesDbAdapter dbAdapter) {
 		// create export file
 		String fileName = prefix + "expenseCategories.csv";
-		File categoriesFiles = new File(exportDirectory, fileName);
+		File categoriesFile = new File(exportDirectory, fileName);
 
 		// forward declarations
 		BufferedWriter writer = null;
@@ -111,8 +123,8 @@ public class ExportExpensesUtils {
 			boolean hasData = cursor.moveToFirst();
 			if (hasData) {
 				// create the file and a writer
-				categoriesFiles.createNewFile();
-				writer = new BufferedWriter(new FileWriter(categoriesFiles));
+				categoriesFile.createNewFile();
+				writer = new BufferedWriter(new FileWriter(categoriesFile));
 
 				// write the header
 				String formatString = "%s,\"%s\",\"%s\",%s";
@@ -137,32 +149,62 @@ public class ExportExpensesUtils {
 					writer.write(line);
 					writer.newLine();
 				} while (cursor.moveToNext());
+				return new Result<ExportResult>(ExportResult.EXPORTED_DATA);
 			}
+			return new Result<ExportResult>(ExportResult.EXPORTED_NO_DATA);
 		} catch (IOException e) {
 			e.printStackTrace();
 			Log.e(LOG_TAG, e.getMessage());
+			return new Result<ExportResult>(
+					ExportResult.ERROR,
+					R.string.export_expenses_error_cannot_export_expense_categories,
+					categoriesFile.getAbsolutePath());
 		}
-		// clean up
-		closeWriter(writer);
-		if (cursor != null)
-			cursor.close();
+		finally {
+			// clean up
+			closeWriter(writer);
+			if (cursor != null)
+				cursor.close();
+		}
 	}
 
-	public static void exportExpenses(File exportDirectory, String prefix, ExpensesDbAdapter dbAdapter, Calendar from,
+	public static Result<ExportResult> exportExpenses(File exportDirectory,
+			String prefix, ExpensesDbAdapter dbAdapter, Calendar from,
 			Calendar to) {
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy'-'MM'.csv'");
 
+		// initialize result
+		ExportResult exportedData = ExportResult.EXPORTED_NO_DATA;
+		
+		// continue while something needs to be exported
 		while (from.before(to)) {
+			// initialize stuff data
 			String postfix = simpleDateFormat.format(from.getTime());
 			long currentFromInMillis = from.getTimeInMillis();
-			long currentToInMillis = CalendarUtils.getFirstDayOfNextMonth(from).getTimeInMillis();
-			exportExpensesInRange(exportDirectory, prefix + postfix, dbAdapter, currentFromInMillis, currentToInMillis);
+			long currentToInMillis = CalendarUtils.getFirstDayOfNextMonth(from)
+					.getTimeInMillis();
+
+			// export >= from and < to
+			Result<ExportResult> result = exportExpensesInRange(
+					exportDirectory, prefix + postfix, dbAdapter,
+					currentFromInMillis, currentToInMillis);
+			
+			// check result
+			if (result.getResult() == ExportResult.ERROR)
+				return result;
+			
+			// update result
+			if (exportedData == ExportResult.EXPORTED_NO_DATA)
+				exportedData = result.getResult();
+		
+			// shift to next month
 			from.add(Calendar.MONTH, 1);
 			from = CalendarUtils.getFirstDayOfMonth(from);
 		}
+		return new Result<ExportResult>(exportedData);
 	}
 
-	private static void exportExpensesInRange(File exportDirectory, String fileName, ExpensesDbAdapter dbAdapter,
+	private static Result<ExportResult> exportExpensesInRange(File exportDirectory, String fileName, ExpensesDbAdapter dbAdapter,
 			long fromInMillis, long toInMillis) {
 		// create export file
 		File exportFile = new File(exportDirectory, fileName);
@@ -206,15 +248,22 @@ public class ExportExpensesUtils {
 					writer.write(line);
 					writer.newLine();
 				} while (cursor.moveToNext());
+				return new Result<ExportResult>(ExportResult.EXPORTED_DATA);
 			}
+			return new Result<ExportResult>(ExportResult.EXPORTED_NO_DATA);
 		} catch (IOException e) {
 			e.printStackTrace();
 			Log.e(LOG_TAG, e.getMessage());
+			return new Result<ExportResult>(ExportResult.ERROR,
+					R.string.export_expenses_error_cannot_export_expenses,
+					exportFile.getAbsolutePath());
 		}
-		// clean up
-		closeWriter(writer);
-		if (cursor != null)
-			cursor.close();
+		finally {
+			// clean up
+			closeWriter(writer);
+			if (cursor != null)
+				cursor.close();
+		}
 	}
 
 	private static void closeWriter(BufferedWriter writer) {
@@ -237,10 +286,5 @@ public class ExportExpensesUtils {
 		if (!exportDirectory.exists())
 			exportDirectory.mkdirs();
 		return exportDirectory;
-	}
-
-	private static void showError(Activity activity, String errorMessage) {
-		Toast toast = Toast.makeText(activity, errorMessage, Toast.LENGTH_LONG);
-		toast.show();
 	}
 }

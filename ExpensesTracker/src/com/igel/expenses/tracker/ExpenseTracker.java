@@ -62,9 +62,13 @@ public class ExpenseTracker extends Activity {
 			return true;
 		case REMOVE_EXPORTED_FILES:
 			if (mExportDirectory == null) {
-				mExportDirectory = ExportExpensesUtils.getExportDirectory(this);
+				Result<File> result = ExportExpensesUtils.getExportDirectory(this);
+				mExportDirectory = result.getResult();
 				if (mExportDirectory == null) {
-					Toast toast = Toast.makeText(this, R.string.export_expenses_warning_cannot_find_directoy,
+					String message = getString(result.getMessageId());
+					if (result.getMessageArgs().length > 0)
+						message = String.format(message, result.getMessageArgs());
+					Toast toast = Toast.makeText(this, message,
 							Toast.LENGTH_LONG);
 					toast.show();
 					return false;
