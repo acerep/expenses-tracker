@@ -10,7 +10,16 @@ public final class CalendarUtils {
         calendar.clear(Calendar.HOUR);
         calendar.clear(Calendar.HOUR_OF_DAY);
         calendar.clear(Calendar.MINUTE);
+        calendar.clear(Calendar.SECOND);
         calendar.clear(Calendar.MILLISECOND);
+        return calendar;
+	}
+
+	public static Calendar getFirstDayOfNextMonth(Calendar date) {
+        Calendar calendar = (Calendar)date.clone();
+		removeTimeFields(calendar);
+        calendar.set(Calendar.DAY_OF_MONTH, 1);
+        calendar.add(Calendar.MONTH, 1);
         return calendar;
 	}
 
@@ -19,5 +28,20 @@ public final class CalendarUtils {
         calendar.add(Calendar.MONTH, 1);
         calendar.add(Calendar.DAY_OF_MONTH, -1);
         return calendar;
+	}
+	
+	public static Calendar getEndOfDay(Calendar date) {
+		Calendar calendar = (Calendar)date.clone();
+		removeTimeFields(calendar);
+		calendar.add(Calendar.DAY_OF_MONTH, 1);
+		return calendar;
+	}
+	
+	private static void removeTimeFields(Calendar date) {
+		date.clear(Calendar.HOUR);
+		date.clear(Calendar.HOUR_OF_DAY);
+		date.clear(Calendar.MINUTE);
+		date.clear(Calendar.SECOND);
+		date.clear(Calendar.MILLISECOND);		
 	}
 }

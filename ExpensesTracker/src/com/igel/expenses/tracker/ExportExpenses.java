@@ -134,9 +134,10 @@ public class ExportExpenses extends Activity {
 	private boolean exportExpenses() {
 		File exportDirectory = ExportExpensesUtils.initExportDirectory(this);
 		if (exportDirectory != null) {
-			String fileNamePostfix = ExportExpensesUtils.getExportFileName();
-			ExportExpensesUtils.exportExpenseCategories(exportDirectory, fileNamePostfix, mDbAdapter);
-			ExportExpensesUtils.exportExpenses(exportDirectory, fileNamePostfix, mDbAdapter, mFromDate, mToDate);
+			String fileNamePrefix = ExportExpensesUtils.getExportFileNamePrefix();
+			ExportExpensesUtils.exportExpenseCategories(exportDirectory, fileNamePrefix, mDbAdapter);
+			Calendar to = CalendarUtils.getEndOfDay(mToDate);
+			ExportExpensesUtils.exportExpenses(exportDirectory, fileNamePrefix, mDbAdapter, mFromDate, to);
 			return true;
 		}
 		return false;

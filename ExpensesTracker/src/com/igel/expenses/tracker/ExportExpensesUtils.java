@@ -20,6 +20,8 @@ import android.widget.Toast;
 public class ExportExpensesUtils {
 
 	private static final String LOG_TAG = "ExportExpenses";
+	
+	private static final String LINE_SEPARTOR = System.getProperty("line.separator");
 
 	public static boolean isExternalStorageWritable() {
 		String state = Environment.getExternalStorageState();
@@ -41,7 +43,6 @@ public class ExportExpensesUtils {
 
 		// initialize stuff
 		File exportDirectory = null;
-		directoryUriString = null;
 
 		if (directoryUriString != null) {
 			// if something found in preferences
@@ -52,7 +53,7 @@ public class ExportExpensesUtils {
 			} catch (URISyntaxException e) {
 				showError(activity, activity.getString(R.string.export_expenses_warning_cannot_find_directoy) + " "
 						+ directoryUriString);
-				Log.d(LOG_TAG, e.getMessage());
+				Log.e(LOG_TAG, e.getMessage());
 				return null;
 			}
 		} else {
@@ -72,22 +73,33 @@ public class ExportExpensesUtils {
 					+ " " + exportDirectory.getAbsolutePath());
 			return null;
 		}
+
+		// if it does not exist, create it
+		if (!exportDirectory.exists())
+			exportDirectory.mkdirs();
+
 		// add .nomedia file if it does not exist
-		maintainNomediaFile(exportDirectory);
+		File nomedia = new File(exportDirectory, ".nomedia");
+		if (!nomedia.exists())
+			try {
+				nomedia.createNewFile();
+			} catch (IOException e) {
+				;
+			}
 
 		return exportDirectory;
 	}
 
-	public static String getExportFileName() {
+	public static String getExportFileNamePrefix() {
 		Date currentDateTime = Calendar.getInstance().getTime();
-		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("'_'yyyyMMdd'_'HHmmss'.csv'");
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd'_'HHmmss'_'");
 		String postfix = simpleDateFormat.format(currentDateTime);
 		return postfix;
 	}
 
-	public static void exportExpenseCategories(File exportDirectory, String postfix, ExpensesDbAdapter dbAdapter) {
+	public static void exportExpenseCategories(File exportDirectory, String prefix, ExpensesDbAdapter dbAdapter) {
 		// create export file
-		String fileName = "expenseCategories" + postfix;
+		String fileName = prefix + "expenseCategories.csv";
 		File categoriesFiles = new File(exportDirectory, fileName);
 
 		// forward declarations
@@ -114,9 +126,9 @@ public class ExportExpensesUtils {
 					String categoryId = cursor.getString(cursor
 							.getColumnIndexOrThrow(ExpensesDbAdapter.EXPENSE_CATEGORY_ID));
 					String categoryName = cursor.getString(cursor
-							.getColumnIndexOrThrow(ExpensesDbAdapter.EXPENSE_CATEGORY_NAME));
+							.getColumnIndexOrThrow(ExpensesDbAdapter.EXPENSE_CATEGORY_NAME)).replace(LINE_SEPARTOR, " ");;
 					String categoryDescription = cursor.getString(cursor
-							.getColumnIndexOrThrow(ExpensesDbAdapter.EXPENSE_CATEGORY_DESCRIPTION));
+							.getColumnIndexOrThrow(ExpensesDbAdapter.EXPENSE_CATEGORY_DESCRIPTION)).replace(LINE_SEPARTOR, " ");;
 					int deleted = cursor.getInt(cursor
 							.getColumnIndexOrThrow(ExpensesDbAdapter.EXPENSE_CATEGORY_DELETED));
 					String deletedString = deleted == ExpensesDbAdapter.TRUE ? "TRUE" : "FALSE";
@@ -128,7 +140,7 @@ public class ExportExpensesUtils {
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
-			Log.d(LOG_TAG, e.getMessage());
+			Log.e(LOG_TAG, e.getMessage());
 		}
 		// clean up
 		closeWriter(writer);
@@ -136,14 +148,14 @@ public class ExportExpensesUtils {
 			cursor.close();
 	}
 
-	public static void exportExpenses(File exportDirectory, String postfix, ExpensesDbAdapter dbAdapter, Calendar from,
+	public static void exportExpenses(File exportDirectory, String prefix, ExpensesDbAdapter dbAdapter, Calendar from,
 			Calendar to) {
-		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy'-'MM");
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy'-'MM'.csv'");
 
-		while (!from.after(to)) {
-			String prefix = simpleDateFormat.format(from.getTime());
+		while (from.before(to)) {
+			String postfix = simpleDateFormat.format(from.getTime());
 			long currentFromInMillis = from.getTimeInMillis();
-			long currentToInMillis = CalendarUtils.getLastDayOfMonth(from).getTimeInMillis();
+			long currentToInMillis = CalendarUtils.getFirstDayOfNextMonth(from).getTimeInMillis();
 			exportExpensesInRange(exportDirectory, prefix + postfix, dbAdapter, currentFromInMillis, currentToInMillis);
 			from.add(Calendar.MONTH, 1);
 			from = CalendarUtils.getFirstDayOfMonth(from);
@@ -186,7 +198,7 @@ public class ExportExpensesUtils {
 					String expenseAmount = cursor.getString(cursor
 							.getColumnIndexOrThrow(ExpensesDbAdapter.EXPENSE_AMOUNT));
 					String expenseDetails = cursor.getString(cursor
-							.getColumnIndexOrThrow(ExpensesDbAdapter.EXPENSE_DETAILS));
+							.getColumnIndexOrThrow(ExpensesDbAdapter.EXPENSE_DETAILS)).replace(LINE_SEPARTOR, " ");
 					String expenseCategoryId = cursor.getString(cursor
 							.getColumnIndexOrThrow(ExpensesDbAdapter.EXPENSE_EXPENSE_CATEGORY_ID));
 					String line = String.format(formatString, expenseId, expenseDateString, expenseAmount,
@@ -197,7 +209,7 @@ public class ExportExpensesUtils {
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
-			Log.d(LOG_TAG, e.getMessage());
+			Log.e(LOG_TAG, e.getMessage());
 		}
 		// clean up
 		closeWriter(writer);
@@ -210,7 +222,7 @@ public class ExportExpensesUtils {
 			try {
 				writer.close();
 			} catch (IOException e) {
-				Log.d(LOG_TAG, e.getMessage());
+				Log.e(LOG_TAG, e.getMessage());
 			}
 		}
 	}
@@ -225,17 +237,6 @@ public class ExportExpensesUtils {
 		if (!exportDirectory.exists())
 			exportDirectory.mkdirs();
 		return exportDirectory;
-	}
-
-	private static void maintainNomediaFile(File exportDirectory) {
-		// try to create a .nomedia file in the export directory; this prevents scanning of media trackers
-		File nomedia = new File(exportDirectory, ".nomedia");
-		if (!nomedia.exists())
-			try {
-				nomedia.createNewFile();
-			} catch (IOException e) {
-				;
-			}
 	}
 
 	private static void showError(Activity activity, String errorMessage) {
