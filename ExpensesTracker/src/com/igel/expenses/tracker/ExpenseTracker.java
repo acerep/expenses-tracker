@@ -13,6 +13,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
@@ -22,10 +23,6 @@ import android.widget.Toast;
 import com.igel.expenses.tracker.ExportExpensesUtils.ClearDirectoryResult;
 
 public class ExpenseTracker extends ListActivity {
-
-	// menu item id
-	private static final int SHOW_PREFERENCES = Menu.FIRST;
-	private static final int REMOVE_EXPORTED_FILES = Menu.FIRST + 1;
 
 	// constants used to create dialogs
 	private static final int REMOVE_EXPORTED_FILES_DIALOG = 0;
@@ -45,7 +42,7 @@ public class ExpenseTracker extends ListActivity {
 
 	private File mExportDirectory;
 
-	private List<? extends Map<String, ?>> mMenuItems;
+	private List<? extends Map<String, ?>> mListMenuItems;
 
 	/** Called when the activity is first created. */
 	@Override
@@ -55,11 +52,12 @@ public class ExpenseTracker extends ListActivity {
 		// set view
 		setContentView(R.layout.expense_tracker);
 		setTitle(R.string.expenses_tracker_title);
-
-		mMenuItems = initializeMenuItems();
+		
+		// initialize list view with menu item
+		mListMenuItems = initializeListMenuItems();
 		String[] from = new String[] { MENU_ITEM, MENU_ITEM_DESCRIPTION };
 		int[] to = new int[] { R.id.expense_tracker_menu_item, R.id.expense_tracker_menu_item_description };
-		SimpleAdapter adapter = new SimpleAdapter(this, mMenuItems, R.layout.expense_tracker_row, from, to);
+		SimpleAdapter adapter = new SimpleAdapter(this, mListMenuItems, R.layout.expense_tracker_row, from, to);
 		setListAdapter(adapter);
 	}
 
@@ -67,9 +65,10 @@ public class ExpenseTracker extends ListActivity {
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// called when options menu is created
 		super.onCreateOptionsMenu(menu);
-		// add menu item to add expense category
-		menu.add(0, SHOW_PREFERENCES, 0, R.string.expenses_tracker_preferences);
-		menu.add(0, REMOVE_EXPORTED_FILES, 0, R.string.expenses_tracker_remove_files);
+
+		// inflate menu
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.expenses_tracker_menu, menu);
 		return true;
 	}
 
@@ -111,14 +110,32 @@ public class ExpenseTracker extends ListActivity {
 	public boolean onMenuItemSelected(int featureId, MenuItem item) {
 		// called when menu item is selected
 		switch (item.getItemId()) {
-		case SHOW_PREFERENCES:
+		case R.id.expenses_tracker_menu_settings:
 			Intent intent = new Intent(this, ExpensesTrackerPreferences.class);
 			startActivityForResult(intent, ACTIVITY_SHOW_PREFERENCES);
 			return true;
-		case REMOVE_EXPORTED_FILES:
+		case R.id.expenses_tracker_menu_clear_data:
 			return true;
+		case R.id.expenses_tracker_menu_info:
+			return true;
+		case R.id.expenses_tracker_menu_feedback:
+			return sendFeedback();
 		}
 		return super.onMenuItemSelected(featureId, item);
+	}
+
+	private boolean sendFeedback() {
+		// send an email
+		Intent intent = new Intent(Intent.ACTION_SEND);
+		
+		// put stuff in extras
+		intent.putExtra(Intent.EXTRA_EMAIL, "christof.simons123@google.com");
+		intent.putExtra(Intent.EXTRA_SUBJECT, "Feedback expense tracker");
+		
+		// let user choose what to do with the intent
+		Intent intentToStart = Intent.createChooser(intent, null);		
+		startActivity(intentToStart);
+		return true;
 	}
 
 	@Override
@@ -180,7 +197,7 @@ public class ExpenseTracker extends ListActivity {
 		showDialog(REMOVE_EXPORTED_FILES_DIALOG);
 	}
 
-	private List<? extends Map<String, ?>> initializeMenuItems() {
+	private List<? extends Map<String, ?>> initializeListMenuItems() {
 		List<Map<String, String>> result = new ArrayList<Map<String, String>>();
 		addMapToList(ADD_EXPENSE, getString(R.string.expenses_tracker_add_expense),
 				getString(R.string.expenses_tracker_add_expense_description), result);

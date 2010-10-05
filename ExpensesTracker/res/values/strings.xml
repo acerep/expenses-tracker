@@ -14,7 +14,10 @@
     <string name="expenses_tracker.export_expenses_description">Export expenses in a date range</string>
     <string name="expenses_tracker.remove_files">Remove Export Files</string>
     <string name="expenses_tracker.remove_files_description">Remove files containing exported expenses</string>
-    <string name="expenses_tracker.clear_expenses">Clear Expenses</string>
+    <string name="expenses_tracker.menu_clear_data">Clear Expenses</string>
+    <string name="expenses_tracker.menu_settings">Settings</string>
+    <string name="expenses_tracker.menu_info">Information</string>
+    <string name="expenses_tracker.menu_feedback">Give feedback</string>
     <string name="expenses_tracker.exit">Exit</string>
     <string name="expenses_tracker.save">Save</string>
     <string name="expenses_tracker.cancel">Cancel</string>
