@@ -78,9 +78,9 @@ public final class R {
         public static final int expenses_tracker_add_expense=0x7f050002;
         public static final int expenses_tracker_add_expense_description=0x7f050003;
         public static final int expenses_tracker_cancel=0x7f050014;
-        public static final int expenses_tracker_exit=0x7f050012;
         public static final int expenses_tracker_export_expenses=0x7f05000a;
         public static final int expenses_tracker_export_expenses_description=0x7f05000b;
+        public static final int expenses_tracker_feedback_title=0x7f050012;
         public static final int expenses_tracker_menu_clear_data=0x7f05000e;
         public static final int expenses_tracker_menu_feedback=0x7f050011;
         public static final int expenses_tracker_menu_info=0x7f050010;

@@ -129,11 +129,12 @@ public class ExpenseTracker extends ListActivity {
 		Intent intent = new Intent(Intent.ACTION_SEND);
 		
 		// put stuff in extras
-		intent.putExtra(Intent.EXTRA_EMAIL, "christof.simons123@google.com");
+		intent.setType("text/plain");
+		intent.putExtra(Intent.EXTRA_EMAIL, "christof.simons123@googlemail.com");
 		intent.putExtra(Intent.EXTRA_SUBJECT, "Feedback expense tracker");
 		
 		// let user choose what to do with the intent
-		Intent intentToStart = Intent.createChooser(intent, null);		
+		Intent intentToStart = Intent.createChooser(intent, getString(R.string.expenses_tracker_feedback_title));		
 		startActivity(intentToStart);
 		return true;
 	}
