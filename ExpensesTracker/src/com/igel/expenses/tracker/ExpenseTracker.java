@@ -1,21 +1,25 @@
 package com.igel.expenses.tracker;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.ListActivity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.View.OnClickListener;
-import android.widget.Button;
+import android.widget.ListView;
+import android.widget.SimpleAdapter;
 import android.widget.Toast;
 
-public class ExpenseTracker extends Activity {
+public class ExpenseTracker extends ListActivity {
 
 	// menu item id
 	private static final int SHOW_PREFERENCES = Menu.FIRST;
@@ -27,7 +31,19 @@ public class ExpenseTracker extends Activity {
 	// activity codes for creating intents
 	private static final int ACTIVITY_SHOW_PREFERENCES = 0;
 
+	// constants used to create menu list
+	private static final String MENU_ITEM = "menuItem";
+	private static final String MENU_ITEM_DESCRIPTION = "menuItemDescription";
+	private static final int ADD_EXPENSE = 0;
+	private static final int VIEW_EXPENSES = 1;
+	private static final int ADD_EXPENSE_CATEGORY = 2;
+	private static final int VIEW_EXPENSE_CATEGORIES = 3;
+	private static final int EXPORT_EXPENSES = 4;
+	private static final int REMOVE_EXPORT_FILES = 5;
+
 	private File mExportDirectory;
+
+	private List<? extends Map<String, ?>> mMenuItems;
 
 	/** Called when the activity is first created. */
 	@Override
@@ -36,10 +52,15 @@ public class ExpenseTracker extends Activity {
 
 		// set view
 		setContentView(R.layout.expense_tracker);
-
-		// set button listeners
-		setButtonListeners();
 		setTitle(R.string.expenses_tracker_title);
+
+		mMenuItems = initializeMenuItems();
+		String[] from = new String[] { MENU_ITEM, MENU_ITEM_DESCRIPTION };
+		int[] to = new int[] { R.id.expense_tracker_menu_item,
+				R.id.expense_tracker_menu_item_description };
+		SimpleAdapter adapter = new SimpleAdapter(this, mMenuItems,
+				R.layout.expense_tracker_row, from, to);
+		setListAdapter(adapter);
 	}
 
 	@Override
@@ -48,8 +69,43 @@ public class ExpenseTracker extends Activity {
 		super.onCreateOptionsMenu(menu);
 		// add menu item to add expense category
 		menu.add(0, SHOW_PREFERENCES, 0, R.string.expenses_tracker_preferences);
-		menu.add(0, REMOVE_EXPORTED_FILES, 0, R.string.expenses_tracker_remove_files);
+		menu.add(0, REMOVE_EXPORTED_FILES, 0,
+				R.string.expenses_tracker_remove_files);
 		return true;
+	}
+
+	@Override
+	protected void onListItemClick(ListView l, View v, int position, long id) {
+		// called when list item is clicked
+		super.onListItemClick(l, v, position, id);
+
+		Intent intent = null;
+		
+		// initialize intent according to clicked list item
+		switch (position) {
+		case ADD_EXPENSE:
+			intent = new Intent(this, EditExpense.class);
+			break;
+		case VIEW_EXPENSES:
+			intent = new Intent(this, ViewExpenses.class);
+			break;
+		case ADD_EXPENSE_CATEGORY:
+			intent = new Intent(this, EditExpenseCategory.class);
+			break;
+		case VIEW_EXPENSE_CATEGORIES:
+			intent = new Intent(this, ViewExpenseCategories.class);
+			break;
+		case EXPORT_EXPENSES:
+			intent = new Intent(this, ExportExpenses.class);
+			break;
+		case REMOVE_EXPORT_FILES:
+			// TODO: not implemented yet
+			break;
+		}
+
+		// start activity if intent is initialized
+		if (intent != null)
+			startActivity(intent);
 	}
 
 	@Override
@@ -62,12 +118,14 @@ public class ExpenseTracker extends Activity {
 			return true;
 		case REMOVE_EXPORTED_FILES:
 			if (mExportDirectory == null) {
-				Result<File> result = ExportExpensesUtils.getExportDirectory(this);
+				Result<File> result = ExportExpensesUtils
+						.getExportDirectory(this);
 				mExportDirectory = result.getResult();
 				if (mExportDirectory == null) {
 					String message = getString(result.getMessageId());
 					if (result.getMessageArgs().length > 0)
-						message = String.format(message, result.getMessageArgs());
+						message = String.format(message, result
+								.getMessageArgs());
 					Toast toast = Toast.makeText(this, message,
 							Toast.LENGTH_LONG);
 					toast.show();
@@ -80,79 +138,68 @@ public class ExpenseTracker extends Activity {
 		return super.onMenuItemSelected(featureId, item);
 	}
 
-	private void setButtonListeners() {
-		Button exit = (Button) findViewById(R.id.expenses_tracker_exit);
-		exit.setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-				finish();
-			}
-		});
-		Button viewCategoriesButton = (Button) findViewById(R.id.expenses_tracker_view_categories);
-		viewCategoriesButton.setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-				viewExpenseCategories();
-			}
-		});
-		Button viewExpensesButton = (Button) findViewById(R.id.expenses_tracker_view_expenses);
-		viewExpensesButton.setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-				viewExpenses();
-			}
-		});
-		Button addExpenseButton = (Button) findViewById(R.id.expenses_tracker_add_expense);
-		addExpenseButton.setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-				addExpense();
-			}
-		});
-		Button exportExpenses = (Button) findViewById(R.id.expenses_tracker_export_expenses);
-		exportExpenses.setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-				exportExpenses();
-			}
-		});
-	}
-
-	private void viewExpenseCategories() {
-		Intent intent = new Intent(this, ViewExpenseCategories.class);
-		startActivity(intent);
-	}
-
-	private void viewExpenses() {
-		Intent intent = new Intent(this, ViewExpenses.class);
-		startActivity(intent);
-	}
-
-	private void addExpense() {
-		Intent intent = new Intent(this, EditExpense.class);
-		startActivity(intent);
-	}
-
-	private void exportExpenses() {
-		Intent intent = new Intent(this, ExportExpenses.class);
-		startActivity(intent);
-	}
-
 	@Override
 	protected Dialog onCreateDialog(int id) {
 		switch (id) {
 		case REMOVE_EXPORTED_FILES_DIALOG:
 			AlertDialog.Builder builder = new AlertDialog.Builder(this);
-			String message = String.format(getString(R.string.expenses_tracker_remove_files_message), mExportDirectory
-					.getAbsolutePath());
-			builder.setMessage(message).setCancelable(false).setPositiveButton(R.string.expenses_tracker_yes,
+			String message = String.format(
+					getString(R.string.expenses_tracker_remove_files_message),
+					mExportDirectory.getAbsolutePath());
+			builder.setMessage(message).setCancelable(false).setPositiveButton(
+					R.string.expenses_tracker_yes,
 					new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog, int id) {
-							ExportExpensesUtils.clearDirectory(mExportDirectory);
+							ExportExpensesUtils
+									.clearDirectory(mExportDirectory);
 						}
-					}).setNegativeButton(R.string.expenses_tracker_no, new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int id) {
-					dialog.cancel();
-				}
-			});
+					}).setNegativeButton(R.string.expenses_tracker_no,
+					new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int id) {
+							dialog.cancel();
+						}
+					});
 			return builder.create();
 		}
 		return null;
 	}
 
+	private List<? extends Map<String, ?>> initializeMenuItems() {
+		List<Map<String, String>> result = new ArrayList<Map<String, String>>();
+		addMapToList(ADD_EXPENSE,
+				getString(R.string.expenses_tracker_add_expense),
+				getString(R.string.expenses_tracker_add_expense_description),
+				result);
+		addMapToList(VIEW_EXPENSES,
+				getString(R.string.expenses_tracker_view_expenses),
+				getString(R.string.expenses_tracker_view_expenses_description),
+				result);
+		addMapToList(ADD_EXPENSE_CATEGORY,
+				getString(R.string.expenses_tracker_add_category),
+				getString(R.string.expenses_tracker_add_category_description),
+				result);
+		addMapToList(
+				VIEW_EXPENSE_CATEGORIES,
+				getString(R.string.expenses_tracker_view_categories),
+				getString(R.string.expenses_tracker_view_categories_description),
+				result);
+		addMapToList(
+				EXPORT_EXPENSES,
+				getString(R.string.expenses_tracker_export_expenses),
+				getString(R.string.expenses_tracker_export_expenses_description),
+				result);
+		addMapToList(REMOVE_EXPORT_FILES,
+				getString(R.string.expenses_tracker_remove_files),
+				getString(R.string.expenses_tracker_remove_files_description),
+				result);
+		return result;
+	}
+
+	private void addMapToList(int position, String menuItem,
+			String menuItemDescription, List<Map<String, String>> list) {
+		Map<String, String> map = new HashMap<String, String>();
+		map.put(MENU_ITEM, menuItem);
+		map.put(MENU_ITEM_DESCRIPTION, menuItemDescription);
+		list.add(position, map);
+	}
 }
