@@ -22,6 +22,9 @@
     <string name="expenses_tracker.no">No</string>
     <string name="expenses_tracker.ok">OK</string>
     <string name="expenses_tracker.remove_files_message">Do you really want to remove exported files in directory %s?</string>
+    <string name="expenses_tracker.remove_files_files_removed">Successfully removed exported files.</string>
+    <string name="expenses_tracker.remove_files_no_files_removed">Did not find any files to remove.</string>
+    <string name="expenses_tracker.remove_files_not_all_files_removed">Could not remove all exported expense files.</string>
     <string name="expenses_tracker.preferences">Settings</string>
     <string name="expenses_tracker_preferences.folder">exportFolder</string>
     <string name="expenses_tracker_preferences.folder_title">Export Directory</string>

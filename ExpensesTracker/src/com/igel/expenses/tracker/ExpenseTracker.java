@@ -19,6 +19,8 @@ import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.Toast;
 
+import com.igel.expenses.tracker.ExportExpensesUtils.ClearDirectoryResult;
+
 public class ExpenseTracker extends ListActivity {
 
 	// menu item id
@@ -56,10 +58,8 @@ public class ExpenseTracker extends ListActivity {
 
 		mMenuItems = initializeMenuItems();
 		String[] from = new String[] { MENU_ITEM, MENU_ITEM_DESCRIPTION };
-		int[] to = new int[] { R.id.expense_tracker_menu_item,
-				R.id.expense_tracker_menu_item_description };
-		SimpleAdapter adapter = new SimpleAdapter(this, mMenuItems,
-				R.layout.expense_tracker_row, from, to);
+		int[] to = new int[] { R.id.expense_tracker_menu_item, R.id.expense_tracker_menu_item_description };
+		SimpleAdapter adapter = new SimpleAdapter(this, mMenuItems, R.layout.expense_tracker_row, from, to);
 		setListAdapter(adapter);
 	}
 
@@ -69,8 +69,7 @@ public class ExpenseTracker extends ListActivity {
 		super.onCreateOptionsMenu(menu);
 		// add menu item to add expense category
 		menu.add(0, SHOW_PREFERENCES, 0, R.string.expenses_tracker_preferences);
-		menu.add(0, REMOVE_EXPORTED_FILES, 0,
-				R.string.expenses_tracker_remove_files);
+		menu.add(0, REMOVE_EXPORTED_FILES, 0, R.string.expenses_tracker_remove_files);
 		return true;
 	}
 
@@ -80,7 +79,7 @@ public class ExpenseTracker extends ListActivity {
 		super.onListItemClick(l, v, position, id);
 
 		Intent intent = null;
-		
+
 		// initialize intent according to clicked list item
 		switch (position) {
 		case ADD_EXPENSE:
@@ -99,7 +98,7 @@ public class ExpenseTracker extends ListActivity {
 			intent = new Intent(this, ExportExpenses.class);
 			break;
 		case REMOVE_EXPORT_FILES:
-			// TODO: not implemented yet
+			removeExportedFiles();
 			break;
 		}
 
@@ -117,22 +116,6 @@ public class ExpenseTracker extends ListActivity {
 			startActivityForResult(intent, ACTIVITY_SHOW_PREFERENCES);
 			return true;
 		case REMOVE_EXPORTED_FILES:
-			if (mExportDirectory == null) {
-				Result<File> result = ExportExpensesUtils
-						.getExportDirectory(this);
-				mExportDirectory = result.getResult();
-				if (mExportDirectory == null) {
-					String message = getString(result.getMessageId());
-					if (result.getMessageArgs().length > 0)
-						message = String.format(message, result
-								.getMessageArgs());
-					Toast toast = Toast.makeText(this, message,
-							Toast.LENGTH_LONG);
-					toast.show();
-					return false;
-				}
-			}
-			showDialog(REMOVE_EXPORTED_FILES_DIALOG);
 			return true;
 		}
 		return super.onMenuItemSelected(featureId, item);
@@ -142,61 +125,79 @@ public class ExpenseTracker extends ListActivity {
 	protected Dialog onCreateDialog(int id) {
 		switch (id) {
 		case REMOVE_EXPORTED_FILES_DIALOG:
+			// create a basic confirmation dialog with yes/no
 			AlertDialog.Builder builder = new AlertDialog.Builder(this);
-			String message = String.format(
-					getString(R.string.expenses_tracker_remove_files_message),
-					mExportDirectory.getAbsolutePath());
-			builder.setMessage(message).setCancelable(false).setPositiveButton(
-					R.string.expenses_tracker_yes,
+			String message = String.format(getString(R.string.expenses_tracker_remove_files_message), mExportDirectory
+					.getAbsolutePath());
+			builder.setMessage(message).setCancelable(false).setPositiveButton(R.string.expenses_tracker_yes,
 					new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog, int id) {
-							ExportExpensesUtils
-									.clearDirectory(mExportDirectory);
+							// clear directory
+							ClearDirectoryResult result = ExportExpensesUtils.clearDirectory(mExportDirectory);
+							
+							// prepare message according to result
+							int messageId;
+							if (result == ClearDirectoryResult.REMOVED_ALL_FILES)
+								messageId = R.string.expenses_tracker_remove_files_files_removed;
+							else if (result == ClearDirectoryResult.REMOVED_NO_FILES)
+								messageId = R.string.expenses_tracker_remove_files_no_files_removed;
+							else
+								messageId = R.string.expenses_tracker_remove_files_not_all_files_removed;
+							
+							// show message
+							Toast toast = Toast.makeText(getApplicationContext(), getString(messageId), Toast.LENGTH_LONG);
+							toast.show();
 						}
-					}).setNegativeButton(R.string.expenses_tracker_no,
-					new DialogInterface.OnClickListener() {
-						public void onClick(DialogInterface dialog, int id) {
-							dialog.cancel();
-						}
-					});
+					}).setNegativeButton(R.string.expenses_tracker_no, new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int id) {
+					dialog.cancel();
+				}
+			});
 			return builder.create();
 		}
 		return null;
 	}
 
+	private void removeExportedFiles() {
+		// check if export directory needs to be set
+		if (mExportDirectory == null) {
+			// try to get the directory
+			Result<File> result = ExportExpensesUtils.getExportDirectory(this);
+			mExportDirectory = result.getResult();
+
+			// check if could be determined
+			if (mExportDirectory == null) {
+				// no: create and show error message
+				String message = getString(result.getMessageId());
+				if (result.getMessageArgs().length > 0)
+					message = String.format(message, result.getMessageArgs());
+				Toast toast = Toast.makeText(this, message, Toast.LENGTH_LONG);
+				toast.show();
+				return;
+			}
+		}
+		// if export directory is available, show confirmation dialog
+		showDialog(REMOVE_EXPORTED_FILES_DIALOG);
+	}
+
 	private List<? extends Map<String, ?>> initializeMenuItems() {
 		List<Map<String, String>> result = new ArrayList<Map<String, String>>();
-		addMapToList(ADD_EXPENSE,
-				getString(R.string.expenses_tracker_add_expense),
-				getString(R.string.expenses_tracker_add_expense_description),
-				result);
-		addMapToList(VIEW_EXPENSES,
-				getString(R.string.expenses_tracker_view_expenses),
-				getString(R.string.expenses_tracker_view_expenses_description),
-				result);
-		addMapToList(ADD_EXPENSE_CATEGORY,
-				getString(R.string.expenses_tracker_add_category),
-				getString(R.string.expenses_tracker_add_category_description),
-				result);
-		addMapToList(
-				VIEW_EXPENSE_CATEGORIES,
-				getString(R.string.expenses_tracker_view_categories),
-				getString(R.string.expenses_tracker_view_categories_description),
-				result);
-		addMapToList(
-				EXPORT_EXPENSES,
-				getString(R.string.expenses_tracker_export_expenses),
-				getString(R.string.expenses_tracker_export_expenses_description),
-				result);
-		addMapToList(REMOVE_EXPORT_FILES,
-				getString(R.string.expenses_tracker_remove_files),
-				getString(R.string.expenses_tracker_remove_files_description),
-				result);
+		addMapToList(ADD_EXPENSE, getString(R.string.expenses_tracker_add_expense),
+				getString(R.string.expenses_tracker_add_expense_description), result);
+		addMapToList(VIEW_EXPENSES, getString(R.string.expenses_tracker_view_expenses),
+				getString(R.string.expenses_tracker_view_expenses_description), result);
+		addMapToList(ADD_EXPENSE_CATEGORY, getString(R.string.expenses_tracker_add_category),
+				getString(R.string.expenses_tracker_add_category_description), result);
+		addMapToList(VIEW_EXPENSE_CATEGORIES, getString(R.string.expenses_tracker_view_categories),
+				getString(R.string.expenses_tracker_view_categories_description), result);
+		addMapToList(EXPORT_EXPENSES, getString(R.string.expenses_tracker_export_expenses),
+				getString(R.string.expenses_tracker_export_expenses_description), result);
+		addMapToList(REMOVE_EXPORT_FILES, getString(R.string.expenses_tracker_remove_files),
+				getString(R.string.expenses_tracker_remove_files_description), result);
 		return result;
 	}
 
-	private void addMapToList(int position, String menuItem,
-			String menuItemDescription, List<Map<String, String>> list) {
+	private void addMapToList(int position, String menuItem, String menuItemDescription, List<Map<String, String>> list) {
 		Map<String, String> map = new HashMap<String, String>();
 		map.put(MENU_ITEM, menuItem);
 		map.put(MENU_ITEM_DESCRIPTION, menuItemDescription);

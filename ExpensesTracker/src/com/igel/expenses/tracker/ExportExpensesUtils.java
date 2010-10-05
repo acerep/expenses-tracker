@@ -20,6 +20,8 @@ public class ExportExpensesUtils {
 
 	public enum ExportResult { EXPORTED_DATA, EXPORTED_NO_DATA, ERROR };
 
+	public enum ClearDirectoryResult { REMOVED_ALL_FILES, REMOVED_NO_FILES, REMOVED_SOME_FILES};
+
 	private static final String LOG_TAG = "ExportExpenses";
 	
 	private static final String LINE_SEPARTOR = System.getProperty("line.separator");
@@ -29,10 +31,26 @@ public class ExportExpensesUtils {
 		return Environment.MEDIA_MOUNTED.equals(state);
 	}
 
-	public static void clearDirectory(File exportDirectory) {
+	public static ClearDirectoryResult clearDirectory(File exportDirectory) {
+		boolean deletedAllFiles = true;
+		boolean deletedSomething = false;
 		for (File file : exportDirectory.listFiles()) {
-			file.delete();
+			deletedAllFiles &= file.delete();
+			deletedSomething = true;
 		}
+		if (deletedAllFiles) {
+			if (deletedSomething)
+				return ClearDirectoryResult.REMOVED_ALL_FILES;
+			else
+				return ClearDirectoryResult.REMOVED_NO_FILES;
+		}
+		else {
+			if (deletedSomething)
+				return ClearDirectoryResult.REMOVED_SOME_FILES;
+			else 
+				return ClearDirectoryResult.REMOVED_NO_FILES;
+				
+		}		
 	}
 
 	public static Result<File> getExportDirectory(Activity activity) {
