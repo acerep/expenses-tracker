@@ -19,6 +19,7 @@
     <string name="expenses_tracker.menu_info">Information</string>
     <string name="expenses_tracker.menu_feedback">Give feedback</string>
     <string name="expenses_tracker.feedback_title">Send email using</string>
+    <string name="expenses_tracker.feedback_subject">Feedback expense tracker</string>
     <string name="expenses_tracker.save">Save</string>
     <string name="expenses_tracker.cancel">Cancel</string>
     <string name="expenses_tracker.yes">Yes</string>
@@ -71,5 +72,8 @@
     <string name="view_expense_categories.delete_expense_category_message">Are you sure you want to delete the expense category?</string>
     <string name="view_expense_categories.delete_unknown_expense_category_message">You cannot delete this essential expense category since it is required by the application.</string>
     <string name="unknown_expense_category_name">Unknown</string>    
-    <string name="unknown_expense_category_description">Default expense category for expenses of unknown type</string>    
+    <string name="unknown_expense_category_description">Default expense category for expenses of unknown type</string>
+    
+    <!--  not used for localization -->
+    <string name="expenses_tracker_feedback_email">christof.simons123@googlemail.com</string>    
 </resources>
