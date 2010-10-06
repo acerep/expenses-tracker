@@ -222,6 +222,16 @@ public class ExpensesDbAdapter {
 	}
 
 	/**
+	 * Delete expenses prior to the given time in millis.
+	 * 
+	 * @param priorTo Time prior which expenses are deleted.
+	 * @return true if something was deleted, false otherwise
+	 */
+	public boolean deleteExpensePriorTo(long priorTo) {
+		return mDb.delete(EXPENSE_TABLE, EXPENSE_DATE + "<" + priorTo, null) > 0;
+	}
+
+	/**
 	 * Return a Cursor over the list of all expenses in the database joined with the referenced expense category name in
 	 * the given range.
 	 * 

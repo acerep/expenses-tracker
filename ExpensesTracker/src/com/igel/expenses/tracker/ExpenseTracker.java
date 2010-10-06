@@ -2,11 +2,13 @@ package com.igel.expenses.tracker;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import android.app.AlertDialog;
+import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.ListActivity;
 import android.content.DialogInterface;
@@ -16,6 +18,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.DatePicker;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.Toast;
@@ -26,6 +29,8 @@ public class ExpenseTracker extends ListActivity {
 
 	// constants used to create dialogs
 	private static final int REMOVE_EXPORTED_FILES_DIALOG = 0;
+	private static final int CLEAR_DATA_DIALOG = 1;
+	private static final int CONFIRM_CLEAR_DATA_DIALOG = 2;
 
 	// activity codes for creating intents
 	private static final int ACTIVITY_SHOW_PREFERENCES = 0;
@@ -42,6 +47,13 @@ public class ExpenseTracker extends ListActivity {
 
 	private File mExportDirectory;
 
+	// used when deleting data from DB
+	private ExpensesDbAdapter mDbAdapter;
+
+	// used for clearing data
+	private Calendar mClearDataDate = Calendar.getInstance();
+
+	// holds menu items displayed in list
 	private List<? extends Map<String, ?>> mListMenuItems;
 
 	/** Called when the activity is first created. */
@@ -52,13 +64,21 @@ public class ExpenseTracker extends ListActivity {
 		// set view
 		setContentView(R.layout.expense_tracker);
 		setTitle(R.string.expenses_tracker_title);
-		
+
+		mDbAdapter = new ExpensesDbAdapter(this);
+		mDbAdapter.open();
 		// initialize list view with menu item
 		mListMenuItems = initializeListMenuItems();
 		String[] from = new String[] { MENU_ITEM, MENU_ITEM_DESCRIPTION };
 		int[] to = new int[] { R.id.expense_tracker_menu_item, R.id.expense_tracker_menu_item_description };
 		SimpleAdapter adapter = new SimpleAdapter(this, mListMenuItems, R.layout.expense_tracker_row, from, to);
 		setListAdapter(adapter);
+	}
+
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
+		mDbAdapter.close();
 	}
 
 	@Override
@@ -115,6 +135,7 @@ public class ExpenseTracker extends ListActivity {
 			startActivityForResult(intent, ACTIVITY_SHOW_PREFERENCES);
 			return true;
 		case R.id.expenses_tracker_menu_clear_data:
+			showDialog(CLEAR_DATA_DIALOG);
 			return true;
 		case R.id.expenses_tracker_menu_info:
 			return true;
@@ -127,7 +148,7 @@ public class ExpenseTracker extends ListActivity {
 	private boolean sendFeedback() {
 		// send an email
 		Intent intent = new Intent(Intent.ACTION_SEND);
-		
+
 		// put stuff in extras
 		intent.setType("message/rfc822");
 		intent.putExtra(Intent.EXTRA_EMAIL, new String[] { getString(R.string.expenses_tracker_feedback_email) });
@@ -151,7 +172,7 @@ public class ExpenseTracker extends ListActivity {
 						public void onClick(DialogInterface dialog, int id) {
 							// clear directory
 							ClearDirectoryResult result = ExportExpensesUtils.clearDirectory(mExportDirectory);
-							
+
 							// prepare message according to result
 							int messageId;
 							if (result == ClearDirectoryResult.REMOVED_ALL_FILES)
@@ -160,9 +181,40 @@ public class ExpenseTracker extends ListActivity {
 								messageId = R.string.expenses_tracker_remove_files_no_files_removed;
 							else
 								messageId = R.string.expenses_tracker_remove_files_not_all_files_removed;
-							
+
 							// show message
-							Toast toast = Toast.makeText(getApplicationContext(), getString(messageId), Toast.LENGTH_LONG);
+							Toast toast = Toast.makeText(getApplicationContext(), getString(messageId),
+									Toast.LENGTH_LONG);
+							toast.show();
+						}
+					}).setNegativeButton(R.string.expenses_tracker_no, new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int id) {
+					dialog.cancel();
+				}
+			});
+			return builder.create();
+		case CLEAR_DATA_DIALOG:
+			Calendar currentMonth = CalendarUtils.getFirstDayOfMonth(Calendar.getInstance());
+			DatePickerDialog datePickerDialog = new DatePickerDialog(this, mDateSetListener, currentMonth
+					.get(Calendar.YEAR), currentMonth.get(Calendar.MONTH), currentMonth.get(Calendar.DAY_OF_MONTH));
+			datePickerDialog.setMessage(getString(R.string.expenses_tracker_clear_data_title));
+			return datePickerDialog;
+		case CONFIRM_CLEAR_DATA_DIALOG:
+			// create a basic confirmation dialog with yes/no
+			builder = new AlertDialog.Builder(this);
+			message = String.format(getString(R.string.expenses_tracker_clear_data_message), CalendarUtils
+					.getDateString(mClearDataDate));
+			builder.setMessage(message).setCancelable(false).setPositiveButton(R.string.expenses_tracker_yes,
+					new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int id) {
+							// remove data
+							boolean result = mDbAdapter.deleteExpensePriorTo(mClearDataDate.getTimeInMillis());
+
+							// show message
+							int messageId = result ? R.string.expenses_tracker_clear_data_success
+									: R.string.expenses_tracker_clear_data_unsuccess;
+							Toast toast = Toast.makeText(getApplicationContext(), getString(messageId),
+									Toast.LENGTH_LONG);
 							toast.show();
 						}
 					}).setNegativeButton(R.string.expenses_tracker_no, new DialogInterface.OnClickListener() {
@@ -220,4 +272,14 @@ public class ExpenseTracker extends ListActivity {
 		map.put(MENU_ITEM_DESCRIPTION, menuItemDescription);
 		list.add(position, map);
 	}
+
+	private DatePickerDialog.OnDateSetListener mDateSetListener = new DatePickerDialog.OnDateSetListener() {
+
+		public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+			mClearDataDate.set(Calendar.YEAR, year);
+			mClearDataDate.set(Calendar.MONTH, monthOfYear);
+			mClearDataDate.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+			showDialog(CONFIRM_CLEAR_DATA_DIALOG);
+		}
+	};
 }

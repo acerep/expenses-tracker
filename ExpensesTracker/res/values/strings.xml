@@ -25,6 +25,10 @@
     <string name="expenses_tracker.yes">Yes</string>
     <string name="expenses_tracker.no">No</string>
     <string name="expenses_tracker.ok">OK</string>
+    <string name="expenses_tracker.clear_data_title">Set date prior to which expenses should be cleared.</string>
+    <string name="expenses_tracker.clear_data_message">Do you really want to clear expenses prior to %s?</string>
+    <string name="expenses_tracker.clear_data_success">Successfully cleared expense data.</string>
+    <string name="expenses_tracker.clear_data_unsuccess">Could not find expense data that needs to be cleared.</string>
     <string name="expenses_tracker.remove_files_message">Do you really want to remove exported files in directory %s?</string>
     <string name="expenses_tracker.remove_files_files_removed">Successfully removed exported files.</string>
     <string name="expenses_tracker.remove_files_no_files_removed">Did not find any files to remove.</string>
@@ -74,7 +78,7 @@
     <string name="unknown_expense_category_name">Unknown</string>    
     <string name="unknown_expense_category_description">Default expense category for expenses of unknown type</string>
     
-    <!--  not used for localization -->
+    <!-- not used for localization -->
     <string name="expenses_tracker_feedback_email">christof.simons123@googlemail.com</string>    
     <string name="open_intents_file_picker_intent">org.openintents.action.PICK_DIRECTORY</string>
 </resources>

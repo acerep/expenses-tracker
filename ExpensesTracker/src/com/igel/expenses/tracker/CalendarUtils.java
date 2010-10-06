@@ -1,9 +1,17 @@
 package com.igel.expenses.tracker;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
 public final class CalendarUtils {
 
+	private static DateFormat mDateFormat = new SimpleDateFormat("EEE, dd.MM.yyyy");
+
+	public static String getDateString(Calendar date) {
+		return mDateFormat.format(date.getTime());
+	}
+	
 	public static Calendar getFirstDayOfMonth(Calendar date) {
         Calendar calendar = (Calendar)date.clone();
         calendar.set(Calendar.DAY_OF_MONTH, 1);
