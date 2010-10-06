@@ -120,6 +120,7 @@ public final class R {
         public static final int export_expenses_info_exported_no_data=0x7f050038;
         public static final int export_expenses_title=0x7f05002e;
         public static final int export_expenses_to=0x7f050030;
+        public static final int open_intents_file_picker_intent=0x7f05004a;
         public static final int unknown_expense_category_description=0x7f050048;
         public static final int unknown_expense_category_name=0x7f050047;
         public static final int view_expense_categories_add_expense_category=0x7f050043;

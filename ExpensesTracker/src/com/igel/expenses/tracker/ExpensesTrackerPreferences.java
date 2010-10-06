@@ -16,37 +16,37 @@ import android.widget.Toast;
 public class ExpensesTrackerPreferences extends android.preference.PreferenceActivity {
 
 	private PreferenceScreen mFolderPreference;
-	
+
 	private static final int ACTION_CHOOSE_FOLDER = 0;
-	
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        
-        // Load the preferences from an XML resource
-        addPreferencesFromResource(R.xml.preferences);
-        mFolderPreference = (PreferenceScreen) getPreferenceScreen().findPreference(
-        		getString(R.string.expenses_tracker_preferences_folder));
-        mFolderPreference.setOnPreferenceClickListener(new OnPreferenceClickListener() {			
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+
+		// Load the preferences from an XML resource
+		addPreferencesFromResource(R.xml.preferences);
+		mFolderPreference = (PreferenceScreen) getPreferenceScreen().findPreference(
+				getString(R.string.expenses_tracker_preferences_folder));
+		mFolderPreference.setOnPreferenceClickListener(new OnPreferenceClickListener() {
 			public boolean onPreferenceClick(Preference preference) {
 				folderPreferenceClicked(preference);
 				return true;
 			}
 		});
-    }
+	}
 
-    private void folderPreferenceClicked(Preference preference) {
-		Intent oiFileManagerIntent = new Intent("org.openintents.action.PICK_DIRECTORY");
-		List<ResolveInfo> queryIntentActivities = getPackageManager().queryIntentActivities(oiFileManagerIntent, PackageManager.MATCH_DEFAULT_ONLY);
+	private void folderPreferenceClicked(Preference preference) {
+		Intent oiFileManagerIntent = new Intent(getString(R.string.open_intents_file_picker_intent));
+		List<ResolveInfo> queryIntentActivities = getPackageManager().queryIntentActivities(oiFileManagerIntent,
+				PackageManager.MATCH_DEFAULT_ONLY);
 		if (queryIntentActivities.isEmpty()) {
-			Toast toast = Toast.makeText(this, R.string.expenses_tracker_preferences_warning_cannot_find_io_file_manager,
-					Toast.LENGTH_LONG);
+			Toast toast = Toast.makeText(this,
+					R.string.expenses_tracker_preferences_warning_cannot_find_io_file_manager, Toast.LENGTH_LONG);
 			toast.show();
-		}
-		else {
+		} else {
 			startActivityForResult(oiFileManagerIntent, ACTION_CHOOSE_FOLDER);
 		}
-    }
+	}
 
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent intent) {

@@ -76,4 +76,5 @@
     
     <!--  not used for localization -->
     <string name="expenses_tracker_feedback_email">christof.simons123@googlemail.com</string>    
+    <string name="open_intents_file_picker_intent">org.openintents.action.PICK_DIRECTORY</string>
 </resources>
