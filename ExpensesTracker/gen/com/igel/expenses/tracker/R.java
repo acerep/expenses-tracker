@@ -112,7 +112,7 @@ public final class R {
         public static final int expenses_tracker_preferences_folder=0x7f050022;
         public static final int expenses_tracker_preferences_folder_summary=0x7f050024;
         public static final int expenses_tracker_preferences_folder_title=0x7f050023;
-        public static final int expenses_tracker_preferences_warning_cannot_find_io_file_manager=0x7f050025;
+        public static final int expenses_tracker_preferences_install_io_file_manager=0x7f050025;
         public static final int export_expenses_date_error=0x7f050036;
         public static final int export_expenses_error_cannot_export_expense_categories=0x7f05003a;
         public static final int export_expenses_error_cannot_export_expenses=0x7f050039;
@@ -124,7 +124,8 @@ public final class R {
         public static final int export_expenses_info_exported_no_data=0x7f05003c;
         public static final int export_expenses_title=0x7f050032;
         public static final int export_expenses_to=0x7f050034;
-        public static final int open_intents_file_picker_intent=0x7f05004e;
+        public static final int open_intents_file_manager_package=0x7f05004e;
+        public static final int open_intents_file_picker_intent=0x7f05004f;
         public static final int unknown_expense_category_description=0x7f05004c;
         public static final int unknown_expense_category_name=0x7f05004b;
         public static final int view_expense_categories_add_expense_category=0x7f050047;

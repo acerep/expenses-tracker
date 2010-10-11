@@ -2,6 +2,9 @@ package com.igel.expenses.tracker;
 
 import java.util.List;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageManager;
@@ -11,11 +14,12 @@ import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceScreen;
 import android.preference.Preference.OnPreferenceClickListener;
-import android.widget.Toast;
 
 public class ExpensesTrackerPreferences extends android.preference.PreferenceActivity {
 
 	private PreferenceScreen mFolderPreference;
+
+	private static final int INSTALL_OI_FILE_MANAGER_DIALOG = 0;
 
 	private static final int ACTION_CHOOSE_FOLDER = 0;
 
@@ -34,15 +38,42 @@ public class ExpensesTrackerPreferences extends android.preference.PreferenceAct
 			}
 		});
 	}
+	
+	@Override
+	protected Dialog onCreateDialog(int id) {
+		switch (id) {
+		case INSTALL_OI_FILE_MANAGER_DIALOG:
+			// create a basic confirmation dialog with yes/no
+			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			String message = getString(R.string.expenses_tracker_preferences_install_io_file_manager);
+			builder.setMessage(message).setCancelable(false).setPositiveButton(R.string.expenses_tracker_yes,
+					new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int id) {
+							Intent intent = new Intent(Intent.ACTION_VIEW);
+							
+							String oiFileManagerPackage = getString(R.string.open_intents_file_manager_package);
+							intent.setData(Uri.parse("market://details?id=" + oiFileManagerPackage));
+
+							startActivity(intent);
+						}
+					}).setNegativeButton(R.string.expenses_tracker_no, new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int id) {
+					dialog.cancel();
+				}
+			});
+			return builder.create();
+		}
+		return super.onCreateDialog(id);
+	}
 
 	private void folderPreferenceClicked(Preference preference) {
 		Intent oiFileManagerIntent = new Intent(getString(R.string.open_intents_file_picker_intent));
 		List<ResolveInfo> queryIntentActivities = getPackageManager().queryIntentActivities(oiFileManagerIntent,
 				PackageManager.MATCH_DEFAULT_ONLY);
 		if (queryIntentActivities.isEmpty()) {
-			Toast toast = Toast.makeText(this,
-					R.string.expenses_tracker_preferences_warning_cannot_find_io_file_manager, Toast.LENGTH_LONG);
-			toast.show();
+			// oi file manager not found, install it
+			showDialog(INSTALL_OI_FILE_MANAGER_DIALOG);
+			return;
 		} else {
 			startActivityForResult(oiFileManagerIntent, ACTION_CHOOSE_FOLDER);
 		}
@@ -65,5 +96,4 @@ public class ExpensesTrackerPreferences extends android.preference.PreferenceAct
 			}
 		}
 	}
-
 }

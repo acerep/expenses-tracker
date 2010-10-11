@@ -37,7 +37,7 @@
     <string name="expenses_tracker_preferences.folder">exportFolder</string>
     <string name="expenses_tracker_preferences.folder_title">Export Directory</string>
     <string name="expenses_tracker_preferences.folder_summary">Directory to store exported files in</string>
-    <string name="expenses_tracker_preferences.warning_cannot_find_io_file_manager">Cannot find IO File Manager. Please install via App Marker.</string>
+    <string name="expenses_tracker_preferences.install_io_file_manager">The Open Intents Filemanager is required for setting a custom export directory. Do you want to install it?</string>
     <string name="add_expense.title">Add Expense</string>
     <string name="edit_expense.title">Edit Expense</string>
     <string name="edit_expense.expense_title">Expense Information</string>
@@ -80,5 +80,6 @@
     
     <!-- not used for localization -->
     <string name="expenses_tracker_feedback_email">christof.simons123@googlemail.com</string>    
+    <string name="open_intents_file_manager_package">org.openintents.filemanager</string>
     <string name="open_intents_file_picker_intent">org.openintents.action.PICK_DIRECTORY</string>
 </resources>
