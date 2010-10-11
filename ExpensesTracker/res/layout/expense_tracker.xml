@@ -5,45 +5,7 @@
     
 	    <ListView 
 	    	android:id="@+id/android:list"
-	        android:layout_width="wrap_content"
+	        android:layout_width="fill_parent"
 	        android:layout_height="wrap_content"/>
 	        
 </LinearLayout>
-
-<!-- 
-<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent">
-
-    <TableRow android:gravity="center_horizontal">
-        <Button
-        	android:id="@+id/expenses_tracker_add_expense"
-            android:text="@string/expenses_tracker.add_expense"/>
-        <Button
-        	android:id="@+id/expenses_tracker_view_expenses"
-            android:text="@string/expenses_tracker.view_expenses"/>
-    </TableRow>
-    
-    <TableRow android:gravity="center_horizontal">
-        <Button
-        	android:id="@+id/expenses_tracker_view_categories"
-            android:text="@string/expenses_tracker.view_categories"/>
-    </TableRow>
-    
-    <TableRow android:gravity="center_horizontal">
-        <Button
-        	android:id="@+id/expenses_tracker_clear_expesnes"
-            android:text="@string/expenses_tracker.clear_expenses"/>
-        <Button
-        	android:id="@+id/expenses_tracker_export_expenses"
-            android:text="@string/expenses_tracker.export_expenses"/>
-    </TableRow>
-
-    <TableRow android:gravity="center_horizontal">
-        <Button
-        	android:id="@+id/expenses_tracker_exit"
-            android:text="@string/expenses_tracker.exit"/>
-    </TableRow>
-    
-</TableLayout>
- -->
