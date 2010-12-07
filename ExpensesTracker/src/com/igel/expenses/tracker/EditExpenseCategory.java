@@ -101,8 +101,8 @@ public class EditExpenseCategory extends Activity {
 	
     private void saveExpenseCategory() {
     	// get entered information
-    	String expenseCategoryName = mExpenseCategoryNameWidget.getText().toString();
-    	String expenseCategoryDescription = mExpenseCategoryDescriptionWidget.getText().toString();
+    	String expenseCategoryName = mExpenseCategoryNameWidget.getText().toString().trim();
+    	String expenseCategoryDescription = mExpenseCategoryDescriptionWidget.getText().toString().trim();
 
     	if (mExpenseCategoryId == null) {
     		// create new expense category

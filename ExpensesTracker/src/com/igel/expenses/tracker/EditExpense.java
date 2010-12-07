@@ -226,9 +226,9 @@ public class EditExpense extends Activity {
 	private void saveExpense() {
 		// get entered information
 		long expenseDateInMillis = mExpenseDate.getTimeInMillis();
-		String amountString = mExpenseAmountWidget.getText().toString();
+		String amountString = mExpenseAmountWidget.getText().toString().trim();
 		int amount = Integer.valueOf(amountString);
-		String details = mExpenseDetailsWidget.getText().toString();
+		String details = mExpenseDetailsWidget.getText().toString().trim();
 
 		if (mExpenseId == null) {
 			// create new expense
