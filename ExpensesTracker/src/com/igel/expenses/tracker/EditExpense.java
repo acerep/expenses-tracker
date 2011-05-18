@@ -64,7 +64,7 @@ public class EditExpense extends Activity {
 
 		// set view
 		setContentView(R.layout.edit_expense);
-		mDateFormat = new SimpleDateFormat("EEE, dd.MM.yyyy");
+		mDateFormat = new SimpleDateFormat("dd.MM.yyyy");
 
 		initializeWidgets();
 		initializeSpinner();

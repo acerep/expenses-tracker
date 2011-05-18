@@ -173,14 +173,14 @@ public class ExportExpenses extends Activity {
 					.getMessageId(), initResult.getMessageArgs());
 		}
 		else {
-			// get file name prefix
-			String fileNamePrefix = ExportExpensesUtils.getExportFileNamePrefix();
+			// get file name postfix
+			String fileNamePostfix = ExportExpensesUtils.getExportFileNamePostfix();
 			
 			// export up to end of selected day
 			Calendar to = CalendarUtils.getEndOfDay(mToDate);
 			
 			// export expenses
-			Result<ExportResult> exportResult = ExportExpensesUtils.exportExpenses(exportDirectory, fileNamePrefix, mDbAdapter, mFromDate, to);
+			Result<ExportResult> exportResult = ExportExpensesUtils.exportExpenses(exportDirectory, fileNamePostfix, mDbAdapter, mFromDate, to);
 			
 			// check for error
 			if (exportResult.getResult() == ExportResult.ERROR) {
@@ -194,7 +194,7 @@ public class ExportExpenses extends Activity {
 			
 			// only export categories if data has been exported
 			exportResult = ExportExpensesUtils.exportExpenseCategories(
-					exportDirectory, fileNamePrefix, mDbAdapter);
+					exportDirectory, fileNamePostfix, mDbAdapter);
 			return exportResult;
 		}
 	}

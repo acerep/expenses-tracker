@@ -1,29 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-      package="com.igel.expenses.tracker"
       android:versionCode="1"
-      android:versionName="1.0">
-    <application android:icon="@drawable/icon" android:label="@string/app_name" android:theme="@style/expenses.tracker" android:debuggable="true">
-        <activity android:name="ExpenseTracker"
-                  android:label="@string/app_name">
+      android:versionName="1.0" 
+      package="com.igel.expenses.tracker">
+    <application 
+    	android:label="@string/app_name" 
+    	android:theme="@style/expenses.tracker" 
+    	android:debuggable="true" 
+    	android:icon="@drawable/ic_launcher_expenses_tracker">
+        
+        <activity 
+        	android:name="ExpenseTracker"
+        	android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        
         <activity android:name=".EditExpenseCategory"/>
         <activity android:name=".ExportExpenses"/>
         <activity android:name=".ViewExpenseCategories"/>
         <activity android:name=".ViewExpenses"/>	
 		<activity android:name=".EditExpense"/>
+		
 		<activity android:name=".ExpensesTrackerPreferences">
             <intent-filter>
                 <category android:name="android.intent.category.PREFERENCE" />
             </intent-filter>
 		</activity>
+		
+		<meta-data 
+			android:name="com.google.android.backup.api_key" 
+			android:value="AEdPqrEAAAAIQN5VmNeQ122HIY3MtJUOnoqFd0CPcyn4k0NCng" />
 	</application>
 	
-    <uses-sdk android:minSdkVersion="7" />
+    <uses-sdk android:minSdkVersion="8"/>
 
 	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 

@@ -15,16 +15,16 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View.OnClickListener;
-import android.widget.Button;
+import android.widget.AdapterView.AdapterContextMenuInfo;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
-import android.widget.AdapterView.AdapterContextMenuInfo;
 
 public class ViewExpenses extends ListActivity {
 
@@ -214,8 +214,8 @@ public class ViewExpenses extends ListActivity {
     }
     
 	private void setButtonListeners() {
-		Button previousMonthButton = (Button) findViewById(R.id.view_expenses_prev_month);
-		Button nextMonthButton = (Button) findViewById(R.id.view_expenses_next_month);
+		ImageButton previousMonthButton = (ImageButton) findViewById(R.id.view_expenses_prev_month);
+		ImageButton nextMonthButton = (ImageButton) findViewById(R.id.view_expenses_next_month);
 		previousMonthButton.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				mSelectedMonth.add(Calendar.MONTH, -1);

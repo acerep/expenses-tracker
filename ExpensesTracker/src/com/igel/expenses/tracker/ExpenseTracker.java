@@ -44,6 +44,8 @@ public class ExpenseTracker extends ListActivity {
 	private static final int VIEW_EXPENSE_CATEGORIES = 3;
 	private static final int EXPORT_EXPENSES = 4;
 	private static final int REMOVE_EXPORT_FILES = 5;
+	private static final int BACKUP_DATABASE = 6;
+	private static final int RESTORE_BACKUP = 7;
 
 	private File mExportDirectory;
 
@@ -118,6 +120,12 @@ public class ExpenseTracker extends ListActivity {
 			break;
 		case REMOVE_EXPORT_FILES:
 			removeExportedFiles();
+			break;
+		case BACKUP_DATABASE:
+			backupDatabase();
+			break;
+		case RESTORE_BACKUP:
+			restoreBackup();
 			break;
 		}
 
@@ -228,6 +236,26 @@ public class ExpenseTracker extends ListActivity {
 	}
 
 	private void removeExportedFiles() {
+		initializeExportDirectory();
+		// if export directory is available, show confirmation dialog
+		if (mExportDirectory != null)
+			showDialog(REMOVE_EXPORTED_FILES_DIALOG);
+	}
+	
+	private void backupDatabase() {
+		initializeExportDirectory();
+		if (mExportDirectory == null)
+			return;
+	}
+	
+	private void restoreBackup() {
+		initializeExportDirectory();
+		if (mExportDirectory == null)
+			return;
+		
+	}
+	
+	private void initializeExportDirectory() {
 		// check if export directory needs to be set
 		if (mExportDirectory == null) {
 			// try to get the directory
@@ -244,9 +272,7 @@ public class ExpenseTracker extends ListActivity {
 				toast.show();
 				return;
 			}
-		}
-		// if export directory is available, show confirmation dialog
-		showDialog(REMOVE_EXPORTED_FILES_DIALOG);
+		}		
 	}
 
 	private List<? extends Map<String, ?>> initializeListMenuItems() {
@@ -263,6 +289,10 @@ public class ExpenseTracker extends ListActivity {
 				getString(R.string.expenses_tracker_export_expenses_description), result);
 		addMapToList(REMOVE_EXPORT_FILES, getString(R.string.expenses_tracker_remove_files),
 				getString(R.string.expenses_tracker_remove_files_description), result);
+		addMapToList(BACKUP_DATABASE, getString(R.string.expenses_tracker_backup_database),
+				getString(R.string.expenses_tracker_backup_database_description), result);
+		addMapToList(RESTORE_BACKUP, getString(R.string.expenses_tracker_restore_backup),
+				getString(R.string.expenses_tracker_restore_backup_description), result);
 		return result;
 	}
 

@@ -42,7 +42,7 @@ public class ExpensesDbAdapter {
 	private Context mCtx;
 
 	private static HashMap<String, String> sExpensesProjectionMap;
-
+	
 	/**
 	 * Constructor - takes the context to allow the database to be opened/created
 	 * 
@@ -312,9 +312,7 @@ public class ExpensesDbAdapter {
 
 		@Override
 		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-			db.execSQL("DROP TABLE IF EXISTS " + EXPENSE_CATEGORY_TABLE);
-			db.execSQL("DROP TABLE IF EXISTS " + EXPENSE_TABLE);
-			onCreate(db);
+			throw new IllegalStateException("Didn't see this coming.");
 		}
 	}
 }

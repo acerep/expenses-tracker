@@ -4,14 +4,22 @@
     android:layout_height="wrap_content"    
     android:padding="6dip">
     
+   	<TextView
+   		android:id="@+id/edit_expense_category_title"
+   		android:layout_width="fill_parent"
+   		android:layout_height="wrap_content"
+   		android:paddingBottom="10dip"
+   		android:text="@string/edit_expense_category.expense_category_title"/>
+
   	<EditText
 		android:id="@+id/edit_expense_category_name"
 	    android:layout_width="wrap_content" 
 	    android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"        
         android:singleLine="true"
         android:capitalize="words"
+        android:ems="12"
+	    android:layout_below="@id/edit_expense_category_title"
 		android:hint="@string/edit_expense_category.name"/>
    	
    	<EditText

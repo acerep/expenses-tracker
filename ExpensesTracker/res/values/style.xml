@@ -16,15 +16,21 @@
 	</style>
 	
 	<style name="expenses.tracker.windowTitleBackground" parent="@android:style/WindowTitleBackground">
-		<item name="android:background">#FF2AAAFF</item>
+		<item name="android:background">#FF6699FF</item>
 	</style>
 
 	<style name="expenses.tracker.button" parent="@android:style/Widget.Button">
    		<item name="android:textAppearance">?android:attr/textAppearanceMedium</item>		
 	</style>
 	
+	<style name="expenses.tracker.black_button" parent="@android:style/Widget.Button">
+   		<item name="android:textAppearance">?android:attr/textAppearanceMedium</item>
+        <item name="android:background">#FF000000</item>
+        <item name="android:textColor">#FF6699FF</item>
+	</style>
+	
   	<style name="expenses.tracker.blueText">
-        <item name="android:textColor">#FF2AAAFF</item>
+        <item name="android:textColor">#FF6699FF</item>
     </style>
     
   	<style name="expenses.tracker.greyText">

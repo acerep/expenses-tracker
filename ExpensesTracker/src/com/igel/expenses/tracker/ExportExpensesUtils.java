@@ -118,17 +118,17 @@ public class ExportExpensesUtils {
 		return new Result<File>(exportDirectory);
 	}
 
-	public static String getExportFileNamePrefix() {
+	public static String getExportFileNamePostfix() {
 		Date currentDateTime = Calendar.getInstance().getTime();
-		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd'_'HHmmss'_'");
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("'_'yyyyMMddHHmm'.csv'");
 		String postfix = simpleDateFormat.format(currentDateTime);
 		return postfix;
 	}
 
 	public static Result<ExportResult> exportExpenseCategories(
-			File exportDirectory, String prefix, ExpensesDbAdapter dbAdapter) {
+			File exportDirectory, String postfix, ExpensesDbAdapter dbAdapter) {
 		// create export file
-		String fileName = prefix + "expenseCategories.csv";
+		String fileName = "expenseCategories" + postfix;
 		File categoriesFile = new File(exportDirectory, fileName);
 
 		// forward declarations
@@ -186,9 +186,9 @@ public class ExportExpensesUtils {
 	}
 
 	public static Result<ExportResult> exportExpenses(File exportDirectory,
-			String prefix, ExpensesDbAdapter dbAdapter, Calendar from,
+			String postfix, ExpensesDbAdapter dbAdapter, Calendar from,
 			Calendar to) {
-		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy'-'MM'.csv'");
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy'-'MM");
 
 		// initialize result
 		ExportResult exportedData = ExportResult.EXPORTED_NO_DATA;
@@ -196,7 +196,7 @@ public class ExportExpensesUtils {
 		// continue while something needs to be exported
 		while (from.before(to)) {
 			// initialize stuff data
-			String postfix = simpleDateFormat.format(from.getTime());
+			String prefix = simpleDateFormat.format(from.getTime());
 			long currentFromInMillis = from.getTimeInMillis();
 			long currentToInMillis = CalendarUtils.getFirstDayOfNextMonth(from)
 					.getTimeInMillis();
