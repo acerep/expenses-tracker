@@ -1,6 +1,7 @@
 package com.igel.expenses.tracker;
 
 import java.util.HashMap;
+import java.util.Set;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -14,16 +15,18 @@ import android.util.Log;
 public class ExpensesDbAdapter {
 
 	public static final String DATABASE_NAME = "expensesTracker";
-	public static final int DATABASE_VERSION = 1;
+	public static final int DATABASE_VERSION = 3;
 
 	public static final int TRUE = 0;
 	public static final int FALSE = 1;
+
+	public static final String UPDATING_DATE = "updatingDate";
+	public static final String DELETED = "deleted";
 
 	private static final String EXPENSE_CATEGORY_TABLE = "expenseCategory";
 	public static final String EXPENSE_CATEGORY_ID = "_id";
 	public static final String EXPENSE_CATEGORY_NAME = "name";
 	public static final String EXPENSE_CATEGORY_DESCRIPTION = "description";
-	public static final String EXPENSE_CATEGORY_DELETED = "deleted";
 
 	public static final int UNKNOWN_EXPENSE_CATEGORY_ID = 1;
 
@@ -42,91 +45,137 @@ public class ExpensesDbAdapter {
 	private Context mCtx;
 
 	private static HashMap<String, String> sExpensesProjectionMap;
-	
+
 	/**
-	 * Constructor - takes the context to allow the database to be opened/created
+	 * Constructor - takes the context to allow the database to be
+	 * opened/created
 	 * 
-	 * @param ctx the Context within which to work
+	 * @param ctx
+	 *            the Context within which to work
 	 */
 	public ExpensesDbAdapter(Context ctx) {
 		this.mCtx = ctx;
 	}
 
 	/**
-	 * Open the expense-tracker database. If it cannot be opened, try to create a new instance of the database. If it
-	 * cannot be created, throw an exception to signal the failure
+	 * Open the expense-tracker database. If it cannot be opened, try to create
+	 * a new instance of the database. If it cannot be created, throw an
+	 * exception to signal the failure
 	 * 
-	 * @return this (self reference, allowing this to be chained in an initialization call)
-	 * @throws SQLException if the database could be neither opened or created
+	 * @return this (self reference, allowing this to be chained in an
+	 *         initialization call)
+	 * @throws SQLException
+	 *             if the database could be neither opened or created
 	 */
 	public ExpensesDbAdapter open() throws SQLException {
 		mDbHelper = new DatabaseHelper(mCtx);
 		mDb = mDbHelper.getWritableDatabase();
 		sExpensesProjectionMap = new HashMap<String, String>();
-		sExpensesProjectionMap.put(EXPENSE_TABLE + "." + EXPENSE_ID, EXPENSE_TABLE + "." + EXPENSE_ID + " AS "
-				+ EXPENSE_ID);
+		sExpensesProjectionMap.put(EXPENSE_TABLE + "." + EXPENSE_ID,
+				EXPENSE_TABLE + "." + EXPENSE_ID + " AS " + EXPENSE_ID);
 		sExpensesProjectionMap.put(EXPENSE_DATE, EXPENSE_DATE);
 		sExpensesProjectionMap.put(EXPENSE_AMOUNT, EXPENSE_AMOUNT);
 		sExpensesProjectionMap.put(EXPENSE_DETAILS, EXPENSE_DETAILS);
-		sExpensesProjectionMap.put(EXPENSE_CATEGORY_NAME, EXPENSE_CATEGORY_NAME);
+		sExpensesProjectionMap
+				.put(EXPENSE_CATEGORY_NAME, EXPENSE_CATEGORY_NAME);
 		return this;
 	}
 
+	/**
+	 * Close the expense-tracker database.
+	 */
 	public void close() {
 		mDbHelper.close();
 	}
 
 	/**
-	 * Create a new expense category using provided information. If the category is successfully created return the new
-	 * rowId for that category, otherwise return a -1 to indicate failure.
+	 * Clear all data from the database.
+	 */
+	public void clearDatabase() {
+		mDb.delete(EXPENSE_TABLE, null, null);
+		mDb.delete(EXPENSE_CATEGORY_TABLE, null, null);
+	}
+
+	/**
+	 * Create expense categories as given by the set of content values.
 	 * 
-	 * @param name the name of the category
-	 * @param description the description of the category
+	 * @param contentValuesSet
+	 *            A set of content values describing distinct expense
+	 *            categories.
+	 */
+	public void createExpenseCategories(Set<ContentValues> contentValuesSet) {
+		for (ContentValues contentValues : contentValuesSet)
+			mDb.insert(EXPENSE_CATEGORY_TABLE, null, contentValues);
+	}
+
+	/**
+	 * Create a new expense category using provided information. If the category
+	 * is successfully created return the new rowId for that category, otherwise
+	 * return a -1 to indicate failure.
+	 * 
+	 * @param name
+	 *            the name of the category
+	 * @param description
+	 *            the description of the category
 	 * @return rowId or -1 if failed
 	 */
 	public long createExpenseCategory(String name, String description) {
 		ContentValues initialValues = new ContentValues();
 		initialValues.put(EXPENSE_CATEGORY_NAME, name);
 		initialValues.put(EXPENSE_CATEGORY_DESCRIPTION, description);
-		initialValues.put(EXPENSE_CATEGORY_DELETED, FALSE);
+		initialValues.put(DELETED, FALSE);
+		initialValues.put(UPDATING_DATE, System.currentTimeMillis());
 
 		return mDb.insert(EXPENSE_CATEGORY_TABLE, null, initialValues);
 	}
 
 	/**
-	 * Update the expense category using the details provided. The category to be updated is specified using the rowId.
+	 * Update the expense category using the details provided. The category to
+	 * be updated is specified using the rowId.
 	 * 
-	 * @param rowId id of category to update
-	 * @param name name to set category name to
-	 * @param description description to set category description to
+	 * @param rowId
+	 *            id of category to update
+	 * @param name
+	 *            name to set category name to
+	 * @param description
+	 *            description to set category description to
 	 * @return true if the category was successfully updated, false otherwise
 	 */
-	public boolean updateExpenseCategory(long rowId, String name, String description) {
+	public boolean updateExpenseCategory(long rowId, String name,
+			String description) {
 		ContentValues args = new ContentValues();
 		args.put(EXPENSE_CATEGORY_NAME, name);
 		args.put(EXPENSE_CATEGORY_DESCRIPTION, description);
+		args.put(UPDATING_DATE, System.currentTimeMillis());
 
-		return mDb.update(EXPENSE_CATEGORY_TABLE, args, EXPENSE_CATEGORY_ID + "=" + rowId, null) > 0;
+		return mDb.update(EXPENSE_CATEGORY_TABLE, args, EXPENSE_CATEGORY_ID
+				+ " = " + rowId, null) > 0;
 	}
 
 	public boolean deleteExpenseCategory(long rowId) {
 		ContentValues args = new ContentValues();
-		args.put(EXPENSE_CATEGORY_DELETED, TRUE);
-		return mDb.update(EXPENSE_CATEGORY_TABLE, args, EXPENSE_CATEGORY_ID + "=" + rowId, null) > 0;
+		args.put(DELETED, TRUE);
+		args.put(UPDATING_DATE, System.currentTimeMillis());
+		return mDb.update(EXPENSE_CATEGORY_TABLE, args, EXPENSE_CATEGORY_ID
+				+ " = " + rowId, null) > 0;
 	}
 
 	/**
-	 * Return a Cursor positioned at the expense category that matches the given rowId
+	 * Return a Cursor positioned at the expense category that matches the given
+	 * rowId
 	 * 
-	 * @param rowId id of category to retrieve
+	 * @param rowId
+	 *            id of category to retrieve
 	 * @return Cursor positioned to matching category, if found
-	 * @throws SQLException if expense category could not be found/retrieved
+	 * @throws SQLException
+	 *             if expense category could not be found/retrieved
 	 */
 	public Cursor fetchExpenseCategory(long rowId) throws SQLException {
 
-		Cursor cursor = mDb.query(false, EXPENSE_CATEGORY_TABLE, new String[] { EXPENSE_CATEGORY_ID,
-				EXPENSE_CATEGORY_NAME, EXPENSE_CATEGORY_DESCRIPTION }, EXPENSE_CATEGORY_ID + "=" + rowId, null, null,
-				null, null, null);
+		Cursor cursor = mDb.query(false, EXPENSE_CATEGORY_TABLE, new String[] {
+				EXPENSE_CATEGORY_ID, EXPENSE_CATEGORY_NAME,
+				EXPENSE_CATEGORY_DESCRIPTION }, EXPENSE_CATEGORY_ID + " = "
+				+ rowId, null, null, null, null, null);
 
 		if (cursor != null) {
 			cursor.moveToFirst();
@@ -140,70 +189,125 @@ public class ExpensesDbAdapter {
 	 * @return Cursor over all categories
 	 */
 	public Cursor fetchAllExpenseCategories() {
-		return mDb.query(EXPENSE_CATEGORY_TABLE, new String[] { EXPENSE_CATEGORY_ID, EXPENSE_CATEGORY_NAME,
-				EXPENSE_CATEGORY_DESCRIPTION }, EXPENSE_CATEGORY_DELETED + "=" + FALSE, null, null, null, null);
+		return mDb.query(EXPENSE_CATEGORY_TABLE, new String[] {
+				EXPENSE_CATEGORY_ID, EXPENSE_CATEGORY_NAME,
+				EXPENSE_CATEGORY_DESCRIPTION }, DELETED + " = " + FALSE, null,
+				null, null, null);
 	}
 
 	/**
-	 * Return a Cursor over the list of all expense categories in the database for export
+	 * Return a Cursor over the list of all expense categories in the database
+	 * for export
 	 * 
 	 * @return Cursor over all categories
 	 */
 	public Cursor fetchAllExpenseCategoriesForExport() {
-		return mDb.query(EXPENSE_CATEGORY_TABLE, new String[] { EXPENSE_CATEGORY_ID, EXPENSE_CATEGORY_NAME,
-				EXPENSE_CATEGORY_DESCRIPTION, EXPENSE_CATEGORY_DELETED }, null, null, null, null, null);
+		return mDb.query(EXPENSE_CATEGORY_TABLE, new String[] {
+				EXPENSE_CATEGORY_ID, EXPENSE_CATEGORY_NAME,
+				EXPENSE_CATEGORY_DESCRIPTION, DELETED }, null, null, null,
+				null, null);
 	}
 
 	/**
-	 * Create a new expense using provided information. If the expense is successfully created return the new rowId for
-	 * that expense, otherwise return a -1 to indicate failure.
+	 * Return a Cursor over all expense categories modified between the given
+	 * timestamps.
 	 * 
-	 * @param date the date of the expense in milliseconds
-	 * @param amount the expense amount
-	 * @param expenseCategoryId id of the expense category of the expense
-	 * @param details the details of the expense
+	 * @param after
+	 *            The lower exclusive bound.
+	 * @param to
+	 *            The upper inclusive bound.
+	 * @return Cursor over found expense categories.
+	 */
+	public Cursor fetchAllUpdatedExpenseCategories(long after, long to) {
+		return mDb.query(EXPENSE_CATEGORY_TABLE, new String[] {
+				EXPENSE_CATEGORY_ID, EXPENSE_CATEGORY_NAME,
+				EXPENSE_CATEGORY_DESCRIPTION, DELETED, UPDATING_DATE },
+				UPDATING_DATE + " > " + after + " and " + UPDATING_DATE
+						+ " <= " + to, null, null, null, null);
+	}
+
+	/**
+	 * Create expenses as given by the set of content values.
+	 * 
+	 * @param contentValuesSet
+	 *            A set of content values describing distinct expenses.
+	 */
+	public void createExpenses(Set<ContentValues> contentValuesSet) {
+		for (ContentValues contentValues : contentValuesSet)
+			mDb.insert(EXPENSE_TABLE, null, contentValues);
+	}
+
+	/**
+	 * Create a new expense using provided information. If the expense is
+	 * successfully created return the new rowId for that expense, otherwise
+	 * return a -1 to indicate failure.
+	 * 
+	 * @param date
+	 *            the date of the expense in milliseconds
+	 * @param amount
+	 *            the expense amount
+	 * @param expenseCategoryId
+	 *            id of the expense category of the expense
+	 * @param details
+	 *            the details of the expense
 	 * @return rowId or -1 if failed
 	 */
-	public long createExpense(long dateInMillis, int amount, long expenseCategoryId, String details) {
+	public long createExpense(long dateInMillis, int amount,
+			long expenseCategoryId, String details) {
 		ContentValues initialValues = new ContentValues();
 		initialValues.put(EXPENSE_DATE, dateInMillis);
 		initialValues.put(EXPENSE_AMOUNT, amount);
 		initialValues.put(EXPENSE_EXPENSE_CATEGORY_ID, expenseCategoryId);
 		initialValues.put(EXPENSE_DETAILS, details);
+		initialValues.put(DELETED, FALSE);
+		initialValues.put(UPDATING_DATE, System.currentTimeMillis());
 
 		return mDb.insert(EXPENSE_TABLE, null, initialValues);
 	}
 
 	/**
-	 * Update the expense using the details provided. The expense to be updated is specified using the rowId.
+	 * Update the expense using the details provided. The expense to be updated
+	 * is specified using the rowId.
 	 * 
-	 * @param rowId id of expense to update
-	 * @param date the date of the expense in milliseconds
-	 * @param amount the expense amount
-	 * @param expenseCategoryId id of the expense category of the expense
-	 * @param details the details of the expense
+	 * @param rowId
+	 *            id of expense to update
+	 * @param date
+	 *            the date of the expense in milliseconds
+	 * @param amount
+	 *            the expense amount
+	 * @param expenseCategoryId
+	 *            id of the expense category of the expense
+	 * @param details
+	 *            the details of the expense
 	 * @return true if the category was successfully updated, false otherwise
 	 */
-	public boolean updateExpense(long rowId, long dateInMillis, int amount, long expenseCategoryId, String details) {
+	public boolean updateExpense(long rowId, long dateInMillis, int amount,
+			long expenseCategoryId, String details) {
 		ContentValues args = new ContentValues();
 		args.put(EXPENSE_DATE, dateInMillis);
 		args.put(EXPENSE_AMOUNT, amount);
 		args.put(EXPENSE_EXPENSE_CATEGORY_ID, expenseCategoryId);
 		args.put(EXPENSE_DETAILS, details);
+		args.put(UPDATING_DATE, System.currentTimeMillis());
 
-		return mDb.update(EXPENSE_TABLE, args, EXPENSE_ID + "=" + rowId, null) > 0;
+		return mDb
+				.update(EXPENSE_TABLE, args, EXPENSE_ID + " = " + rowId, null) > 0;
 	}
 
 	/**
 	 * Return a Cursor positioned at the expense that matches the given rowId
 	 * 
-	 * @param rowId id of expense to retrieve
+	 * @param rowId
+	 *            id of expense to retrieve
 	 * @return Cursor positioned to matching expense, if found
-	 * @throws SQLException if expense could not be found/retrieved
+	 * @throws SQLException
+	 *             if expense could not be found/retrieved
 	 */
 	public Cursor fetchExpense(long rowId) throws SQLException {
-		Cursor cursor = mDb.query(false, EXPENSE_TABLE, new String[] { EXPENSE_ID, EXPENSE_DATE, EXPENSE_AMOUNT,
-				EXPENSE_DETAILS, EXPENSE_EXPENSE_CATEGORY_ID }, EXPENSE_ID + "=" + rowId, null, null, null, null, null);
+		Cursor cursor = mDb.query(false, EXPENSE_TABLE, new String[] {
+				EXPENSE_ID, EXPENSE_DATE, EXPENSE_AMOUNT, EXPENSE_DETAILS,
+				EXPENSE_EXPENSE_CATEGORY_ID }, EXPENSE_ID + " = " + rowId,
+				null, null, null, null, null);
 
 		if (cursor != null) {
 			cursor.moveToFirst();
@@ -214,66 +318,107 @@ public class ExpensesDbAdapter {
 	/**
 	 * Delete the expense with the given rowId
 	 * 
-	 * @param rowId id of expense to delete
+	 * @param rowId
+	 *            id of expense to delete
 	 * @return true if deleted, false otherwise
 	 */
 	public boolean deleteExpense(long rowId) {
-		return mDb.delete(EXPENSE_TABLE, EXPENSE_ID + "=" + rowId, null) > 0;
+		ContentValues args = new ContentValues();
+		args.put(DELETED, TRUE);
+		args.put(UPDATING_DATE, System.currentTimeMillis());
+		return mDb
+				.update(EXPENSE_TABLE, args, EXPENSE_ID + " = " + rowId, null) > 0;
 	}
 
 	/**
 	 * Delete expenses prior to the given time in millis.
 	 * 
-	 * @param priorTo Time prior which expenses are deleted.
+	 * @param priorTo
+	 *            Time prior which expenses are deleted.
 	 * @return true if something was deleted, false otherwise
 	 */
 	public boolean deleteExpensePriorTo(long priorTo) {
-		return mDb.delete(EXPENSE_TABLE, EXPENSE_DATE + "<" + priorTo, null) > 0;
+		ContentValues args = new ContentValues();
+		args.put(DELETED, TRUE);
+		args.put(UPDATING_DATE, System.currentTimeMillis());
+		return mDb.delete(EXPENSE_TABLE, EXPENSE_DATE + " < " + priorTo, null) > 0;
 	}
 
 	/**
-	 * Return a Cursor over the list of all expenses in the database joined with the referenced expense category name in
-	 * the given range.
+	 * Return a Cursor over the list of all expenses in the database joined with
+	 * the referenced expense category name in the given range.
 	 * 
-	 * @param from From time in millis
-	 * @param to To time in millis
+	 * @param from
+	 *            From time in millis
+	 * @param to
+	 *            To time in millis
 	 * @return Cursor over all expenses
 	 */
 	public Cursor fetchAllExpensesInRange(long from, long to) {
 		SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
-		qb.setTables(EXPENSE_TABLE + " left outer join " + EXPENSE_CATEGORY_TABLE + " on (" + EXPENSE_TABLE + "."
-				+ EXPENSE_EXPENSE_CATEGORY_ID + " = " + EXPENSE_CATEGORY_TABLE + "." + EXPENSE_CATEGORY_ID + ")");
+		qb.setTables(EXPENSE_TABLE + " left outer join "
+				+ EXPENSE_CATEGORY_TABLE + " on (" + EXPENSE_TABLE + "."
+				+ EXPENSE_EXPENSE_CATEGORY_ID + " = " + EXPENSE_CATEGORY_TABLE
+				+ "." + EXPENSE_CATEGORY_ID + ")");
 		qb.setProjectionMap(sExpensesProjectionMap);
-		return qb.query(mDb, new String[] { EXPENSE_TABLE + "." + EXPENSE_ID, EXPENSE_DATE, EXPENSE_AMOUNT,
-				EXPENSE_DETAILS, EXPENSE_CATEGORY_NAME }, EXPENSE_DATE + ">=" + from + " and " + EXPENSE_DATE + "<"
-				+ to, null, null, null, EXPENSE_TABLE + "." + EXPENSE_DATE + " desc");
+		return qb.query(mDb, new String[] { EXPENSE_TABLE + "." + EXPENSE_ID,
+				EXPENSE_DATE, EXPENSE_AMOUNT, EXPENSE_DETAILS,
+				EXPENSE_CATEGORY_NAME }, EXPENSE_DATE + " >= " + from + " and "
+				+ EXPENSE_DATE + " < " + to + " and " + EXPENSE_TABLE + "."
+				+ DELETED + " = " + FALSE, null, null, null, EXPENSE_TABLE
+				+ "." + EXPENSE_DATE + " desc");
 	}
 
 	/**
-	 * Return a Cursor over the list of all expenses in the given range for export
+	 * Return a Cursor over the list of all expenses in the given range for
+	 * export
 	 * 
 	 * @return Cursor over all expenses
 	 */
 	public Cursor fetchAllExpensesInRangeForExport(long from, long to) {
-		return mDb.query(EXPENSE_TABLE, new String[] { EXPENSE_ID, EXPENSE_DATE, EXPENSE_AMOUNT, EXPENSE_DETAILS,
-				EXPENSE_EXPENSE_CATEGORY_ID }, EXPENSE_DATE + ">=" + from + " and " + EXPENSE_DATE + "<" + to, null,
-				null, null, null);
+		return mDb.query(EXPENSE_TABLE, new String[] { EXPENSE_ID,
+				EXPENSE_DATE, EXPENSE_AMOUNT, EXPENSE_DETAILS,
+				EXPENSE_EXPENSE_CATEGORY_ID }, EXPENSE_DATE + " >= " + from
+				+ " and " + EXPENSE_DATE + " < " + to + " and " + DELETED
+				+ " = " + FALSE, null, null, null, null);
+	}
+
+	/**
+	 * Return a Cursor over all expenses modified between the given timestamps.
+	 * 
+	 * @param after
+	 *            The lower exclusive bound.
+	 * @param to
+	 *            The upper inclusive bound.
+	 * @return Cursor over found expenses.
+	 */
+	public Cursor fetchAllUpdatedExpenses(long after, long to) {
+		return mDb.query(EXPENSE_TABLE, new String[] { EXPENSE_ID,
+				EXPENSE_DATE, EXPENSE_AMOUNT, EXPENSE_DETAILS,
+				EXPENSE_EXPENSE_CATEGORY_ID, DELETED, UPDATING_DATE },
+				UPDATING_DATE + " > " + after + " and " + UPDATING_DATE
+						+ " <= " + to, null, null, null, null);
 	}
 
 	/**
 	 * Returns the sum of all expenses in the given range.
 	 * 
-	 * @param from From time in millis
-	 * @param to To time in millis
+	 * @param from
+	 *            From time in millis
+	 * @param to
+	 *            To time in millis
 	 * @return The sum of all expenses
 	 */
 	public long getExpensesSum(long from, long to) {
-		Cursor cursor = mDb.query(false, EXPENSE_TABLE, new String[] { "sum(" + EXPENSE_AMOUNT + ")"}, EXPENSE_DATE + " >= ? and " + EXPENSE_DATE + " < ?"
-				, new String[] {"" + from, "" + to}, null, null, null, null);
+		Cursor cursor = mDb.query(false, EXPENSE_TABLE, new String[] { "sum("
+				+ EXPENSE_AMOUNT + ")" }, EXPENSE_DATE + " >= " + from
+				+ " and " + EXPENSE_DATE + " < " + to + " and " + DELETED
+				+ " = " + FALSE, null, null, null, null, null);
 
 		long result = 0;
 		if (cursor != null && cursor.moveToFirst()) {
-			String amountString = cursor.getString(cursor.getColumnIndexOrThrow("sum(" + EXPENSE_AMOUNT + ")"));
+			String amountString = cursor.getString(cursor
+					.getColumnIndexOrThrow("sum(" + EXPENSE_AMOUNT + ")"));
 			if (amountString != null)
 				result = Long.valueOf(amountString);
 		}
@@ -294,25 +439,64 @@ public class ExpensesDbAdapter {
 		@Override
 		public void onCreate(SQLiteDatabase db) {
 			Log.i(TAG, "Creating expenses-tracker database");
-			db.execSQL("create table " + EXPENSE_CATEGORY_TABLE + "(" + EXPENSE_CATEGORY_ID
-					+ " integer primary key autoincrement, " + EXPENSE_CATEGORY_NAME + " text not null, "
-					+ EXPENSE_CATEGORY_DESCRIPTION + " text not null, " + EXPENSE_CATEGORY_DELETED
+			db.execSQL("create table " + EXPENSE_CATEGORY_TABLE + "("
+					+ EXPENSE_CATEGORY_ID
+					+ " integer primary key autoincrement, "
+					+ EXPENSE_CATEGORY_NAME + " text not null, "
+					+ EXPENSE_CATEGORY_DESCRIPTION + " text not null, "
+					+ DELETED + " integer not null, " + UPDATING_DATE
 					+ " integer not null);");
-			db.execSQL("create table " + EXPENSE_TABLE + "(" + EXPENSE_ID + " integer primary key autoincrement, "
-					+ EXPENSE_DATE + " integer not null, " + EXPENSE_AMOUNT + " integer not null, "
-					+ EXPENSE_EXPENSE_CATEGORY_ID + " integer not null, " + EXPENSE_DETAILS
-					+ " text not null, constraint exp2expCat foreign key (" + EXPENSE_EXPENSE_CATEGORY_ID
-					+ ") references " + EXPENSE_CATEGORY_TABLE + " (" + EXPENSE_CATEGORY_ID + "));");
-			db.execSQL("insert into " + EXPENSE_CATEGORY_TABLE + " (" + EXPENSE_CATEGORY_ID + ", "
-					+ EXPENSE_CATEGORY_NAME + ", " + EXPENSE_CATEGORY_DESCRIPTION + ", " + EXPENSE_CATEGORY_DELETED
-					+ ") values ( " + UNKNOWN_EXPENSE_CATEGORY_ID + ", '"
-					+ mContext.getString(R.string.unknown_expense_category_name) + "', '"
-					+ mContext.getString(R.string.unknown_expense_category_description) + "', " + FALSE + ");");
+			db.execSQL("create table " + EXPENSE_TABLE + "(" + EXPENSE_ID
+					+ " integer primary key autoincrement, " + EXPENSE_DATE
+					+ " integer not null, " + EXPENSE_AMOUNT
+					+ " integer not null, " + EXPENSE_EXPENSE_CATEGORY_ID
+					+ " integer not null, " + EXPENSE_DETAILS
+					+ " text not null, " + DELETED + " integer not null, "
+					+ UPDATING_DATE
+					+ " integer not null, constraint exp2expCat foreign key ("
+					+ EXPENSE_EXPENSE_CATEGORY_ID + ") references "
+					+ EXPENSE_CATEGORY_TABLE + " (" + EXPENSE_CATEGORY_ID
+					+ "));");
+			db.execSQL("insert into "
+					+ EXPENSE_CATEGORY_TABLE
+					+ " ("
+					+ EXPENSE_CATEGORY_ID
+					+ ", "
+					+ EXPENSE_CATEGORY_NAME
+					+ ", "
+					+ EXPENSE_CATEGORY_DESCRIPTION
+					+ ", "
+					+ DELETED
+					+ ", "
+					+ UPDATING_DATE
+					+ ") values ( "
+					+ UNKNOWN_EXPENSE_CATEGORY_ID
+					+ ", '"
+					+ mContext
+							.getString(R.string.unknown_expense_category_name)
+					+ "', '"
+					+ mContext
+							.getString(R.string.unknown_expense_category_description)
+					+ "', " + FALSE + ", " + System.currentTimeMillis() + ");");
 		}
 
 		@Override
 		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-			throw new IllegalStateException("Didn't see this coming.");
+			if (oldVersion == 1) {
+				db.execSQL("alter table " + EXPENSE_CATEGORY_TABLE
+						+ " add column " + UPDATING_DATE
+						+ " integer not null default "
+						+ System.currentTimeMillis() + ";");
+				db.execSQL("alter table " + EXPENSE_TABLE + " add column "
+						+ UPDATING_DATE + " integer not null default "
+						+ System.currentTimeMillis() + ";");
+				db.execSQL("alter table " + EXPENSE_TABLE + " add column "
+						+ DELETED + " integer not null default " + FALSE + ";");
+			} else if (oldVersion == 2) {
+				db.execSQL("alter table " + EXPENSE_TABLE + " add column "
+						+ DELETED + " integer not null default " + FALSE + ";");
+			} else
+				throw new IllegalStateException("Didn't see this one coming.");
 		}
 	}
 }

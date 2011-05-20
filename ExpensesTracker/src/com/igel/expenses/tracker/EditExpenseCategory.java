@@ -1,6 +1,7 @@
 package com.igel.expenses.tracker;
 
 import android.app.Activity;
+import android.app.backup.BackupManager;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.view.View;
@@ -26,6 +27,9 @@ public class EditExpenseCategory extends Activity {
 	// database adapter
 	private ExpensesDbAdapter mDbAdapter;
 	
+	// backup manager
+	private BackupManager mBackupManager;
+	
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -34,6 +38,9 @@ public class EditExpenseCategory extends Activity {
         // create new database adapter and open it
         mDbAdapter = new ExpensesDbAdapter(this);
         mDbAdapter.open();
+        
+        // initialize backup manager
+        mBackupManager = new BackupManager(this);
         
         // set view
         setContentView(R.layout.edit_expense_category);
@@ -113,6 +120,9 @@ public class EditExpenseCategory extends Activity {
     	else {
     		mDbAdapter.updateExpenseCategory(mExpenseCategoryId, expenseCategoryName, expenseCategoryDescription);
     	}
+    	
+    	// notify backup manager about changed information
+    	mBackupManager.dataChanged();
     }
     
 	@Override

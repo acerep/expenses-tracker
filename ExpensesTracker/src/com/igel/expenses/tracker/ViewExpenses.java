@@ -10,6 +10,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ListActivity;
+import android.app.backup.BackupManager;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
@@ -42,11 +43,11 @@ public class ViewExpenses extends ListActivity {
 	// constants used to create dialogs
 	private static final int DELETE_EXPENSE_DIALOG = 0;
 	
+	// constants used to create bundles for dialogs 
+	private static final String EXPENSE_ID = "expenseID";
+	
 	// widgets
 	private TextView mTotalsWidget;
-	
-	// used to pass the ID of the expense to the delete dialog (bad but bundle not available)
-	private long mExpenseToBeDeletedId;
 	
 	// used to format date for display
 	private DateFormat mDateFormat;
@@ -59,6 +60,10 @@ public class ViewExpenses extends ListActivity {
 	
 	// database adapter
 	private ExpensesDbAdapter mDbAdapter;
+	
+	// backup manager
+	private BackupManager mBackupManager;
+	
 	
     /** Called when the activity is first created. */
     @Override
@@ -81,6 +86,9 @@ public class ViewExpenses extends ListActivity {
         mDbAdapter.open();
         fetchDataFromDb();
 
+        // initialize backup manager
+        mBackupManager = new BackupManager(this);
+        
         updateTitle();
         
         registerForContextMenu(getListView());
@@ -90,6 +98,7 @@ public class ViewExpenses extends ListActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
     	// called when options menu is created
         super.onCreateOptionsMenu(menu);
+        
         // add menu item to add expense category
         menu.add(0, ADD_EXPENSE_ID, 0, R.string.view_expenses_add_expense);
         return true;
@@ -107,8 +116,9 @@ public class ViewExpenses extends ListActivity {
     	switch(item.getItemId()) {
     	case DELETE_EXPENSE_ID:
     		AdapterContextMenuInfo info = (AdapterContextMenuInfo)item.getMenuInfo();
-    		mExpenseToBeDeletedId = info.id;
-    		showDialog(DELETE_EXPENSE_DIALOG);
+    		Bundle bundle = new Bundle();
+    		bundle.putLong(EXPENSE_ID, info.id);
+    		showDialog(DELETE_EXPENSE_DIALOG, bundle);
     		return true;
     	}
     	return super.onContextItemSelected(item);
@@ -148,8 +158,12 @@ public class ViewExpenses extends ListActivity {
     	startActivityForResult(intent, ACTIVITY_ADD_EXPENSE);
     }
     
-    private void deleteSelectedExpense() {
-		mDbAdapter.deleteExpense(mExpenseToBeDeletedId);		
+    private void deleteSelectedExpense(long expenseId) {
+		mDbAdapter.deleteExpense(expenseId);
+		
+    	// notify backup manager about changed information
+    	mBackupManager.dataChanged();
+
 		fetchDataFromDb();
     }
     
@@ -172,10 +186,11 @@ public class ViewExpenses extends ListActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
     	// called when started activity is finished
         super.onActivityResult(requestCode, resultCode, intent);
+        fetchDataFromDb();
     }
 
 	@Override
-	protected Dialog onCreateDialog(int id) {
+	protected Dialog onCreateDialog(int id, final Bundle bundle) {
 		switch (id) {
 		case DELETE_EXPENSE_DIALOG:
 	    	AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -183,7 +198,7 @@ public class ViewExpenses extends ListActivity {
 	    	       .setCancelable(false)
 	    	       .setPositiveButton(R.string.expenses_tracker_yes, new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog, int id) {
-							deleteSelectedExpense();
+							deleteSelectedExpense(bundle.getLong(EXPENSE_ID));
 						}
 	    	       })
 	    	       .setNegativeButton(R.string.expenses_tracker_no, new DialogInterface.OnClickListener() {

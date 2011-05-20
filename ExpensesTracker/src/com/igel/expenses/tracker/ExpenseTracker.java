@@ -11,6 +11,7 @@ import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.ListActivity;
+import android.app.backup.BackupManager;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
@@ -44,13 +45,14 @@ public class ExpenseTracker extends ListActivity {
 	private static final int VIEW_EXPENSE_CATEGORIES = 3;
 	private static final int EXPORT_EXPENSES = 4;
 	private static final int REMOVE_EXPORT_FILES = 5;
-	private static final int BACKUP_DATABASE = 6;
-	private static final int RESTORE_BACKUP = 7;
 
 	private File mExportDirectory;
 
 	// used when deleting data from DB
 	private ExpensesDbAdapter mDbAdapter;
+	
+	// backup manager
+	private BackupManager mBackupManager;
 
 	// used for clearing data
 	private Calendar mClearDataDate = Calendar.getInstance();
@@ -69,6 +71,10 @@ public class ExpenseTracker extends ListActivity {
 
 		mDbAdapter = new ExpensesDbAdapter(this);
 		mDbAdapter.open();
+		
+        // initialize backup manager
+        mBackupManager = new BackupManager(this);
+        
 		// initialize list view with menu item
 		mListMenuItems = initializeListMenuItems();
 		String[] from = new String[] { MENU_ITEM, MENU_ITEM_DESCRIPTION };
@@ -120,12 +126,6 @@ public class ExpenseTracker extends ListActivity {
 			break;
 		case REMOVE_EXPORT_FILES:
 			removeExportedFiles();
-			break;
-		case BACKUP_DATABASE:
-			backupDatabase();
-			break;
-		case RESTORE_BACKUP:
-			restoreBackup();
 			break;
 		}
 
@@ -217,6 +217,9 @@ public class ExpenseTracker extends ListActivity {
 						public void onClick(DialogInterface dialog, int id) {
 							// remove data
 							boolean result = mDbAdapter.deleteExpensePriorTo(mClearDataDate.getTimeInMillis());
+							
+					    	// notify backup manager about changed information
+					    	mBackupManager.dataChanged();		
 
 							// show message
 							int messageId = result ? R.string.expenses_tracker_clear_data_success
@@ -240,19 +243,6 @@ public class ExpenseTracker extends ListActivity {
 		// if export directory is available, show confirmation dialog
 		if (mExportDirectory != null)
 			showDialog(REMOVE_EXPORTED_FILES_DIALOG);
-	}
-	
-	private void backupDatabase() {
-		initializeExportDirectory();
-		if (mExportDirectory == null)
-			return;
-	}
-	
-	private void restoreBackup() {
-		initializeExportDirectory();
-		if (mExportDirectory == null)
-			return;
-		
 	}
 	
 	private void initializeExportDirectory() {
@@ -289,10 +279,6 @@ public class ExpenseTracker extends ListActivity {
 				getString(R.string.expenses_tracker_export_expenses_description), result);
 		addMapToList(REMOVE_EXPORT_FILES, getString(R.string.expenses_tracker_remove_files),
 				getString(R.string.expenses_tracker_remove_files_description), result);
-		addMapToList(BACKUP_DATABASE, getString(R.string.expenses_tracker_backup_database),
-				getString(R.string.expenses_tracker_backup_database_description), result);
-		addMapToList(RESTORE_BACKUP, getString(R.string.expenses_tracker_restore_backup),
-				getString(R.string.expenses_tracker_restore_backup_description), result);
 		return result;
 	}
 

@@ -7,6 +7,7 @@ import java.util.Calendar;
 import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
+import android.app.backup.BackupManager;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.view.View;
@@ -53,6 +54,9 @@ public class EditExpense extends Activity {
 	// database adapter
 	private ExpensesDbAdapter mDbAdapter;
 
+	// backup manager
+	private BackupManager mBackupManager;
+	
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -62,6 +66,9 @@ public class EditExpense extends Activity {
 		mDbAdapter = new ExpensesDbAdapter(this);
 		mDbAdapter.open();
 
+        // initialize backup manager
+        mBackupManager = new BackupManager(this);
+        
 		// set view
 		setContentView(R.layout.edit_expense);
 		mDateFormat = new SimpleDateFormat("dd.MM.yyyy");
@@ -238,6 +245,9 @@ public class EditExpense extends Activity {
 		} else {
 			mDbAdapter.updateExpense(mExpenseId, expenseDateInMillis, amount, mExpenseCategoryId, details);
 		}
+		
+    	// notify backup manager about changed information
+    	mBackupManager.dataChanged();		
 	}
 
 	@Override

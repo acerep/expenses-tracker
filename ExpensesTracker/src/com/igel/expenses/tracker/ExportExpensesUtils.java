@@ -32,9 +32,13 @@ public class ExportExpensesUtils {
 	}
 
 	public static ClearDirectoryResult clearDirectory(File exportDirectory) {
+		File[] files = exportDirectory.listFiles();
+		if (files == null)
+			return ClearDirectoryResult.REMOVED_NO_FILES;
+
 		boolean deletedAllFiles = true;
 		boolean deletedSomething = false;
-		for (File file : exportDirectory.listFiles()) {
+		for (File file : files) {
 			deletedAllFiles &= file.delete();
 			deletedSomething = true;
 		}
@@ -147,7 +151,7 @@ public class ExportExpensesUtils {
 				String formatString = "%s,\"%s\",\"%s\",%s";
 				String header = String.format(formatString, ExpensesDbAdapter.EXPENSE_CATEGORY_ID,
 						ExpensesDbAdapter.EXPENSE_CATEGORY_NAME, ExpensesDbAdapter.EXPENSE_CATEGORY_DESCRIPTION,
-						ExpensesDbAdapter.EXPENSE_CATEGORY_DELETED);
+						ExpensesDbAdapter.DELETED);
 				writer.write(header);
 				writer.newLine();
 
@@ -155,11 +159,11 @@ public class ExportExpensesUtils {
 					String categoryId = cursor.getString(cursor
 							.getColumnIndexOrThrow(ExpensesDbAdapter.EXPENSE_CATEGORY_ID));
 					String categoryName = cursor.getString(cursor
-							.getColumnIndexOrThrow(ExpensesDbAdapter.EXPENSE_CATEGORY_NAME)).replace(LINE_SEPARTOR, " ");;
+							.getColumnIndexOrThrow(ExpensesDbAdapter.EXPENSE_CATEGORY_NAME)).replace(LINE_SEPARTOR, " ");
 					String categoryDescription = cursor.getString(cursor
-							.getColumnIndexOrThrow(ExpensesDbAdapter.EXPENSE_CATEGORY_DESCRIPTION)).replace(LINE_SEPARTOR, " ");;
+							.getColumnIndexOrThrow(ExpensesDbAdapter.EXPENSE_CATEGORY_DESCRIPTION)).replace(LINE_SEPARTOR, " ");
 					int deleted = cursor.getInt(cursor
-							.getColumnIndexOrThrow(ExpensesDbAdapter.EXPENSE_CATEGORY_DELETED));
+							.getColumnIndexOrThrow(ExpensesDbAdapter.DELETED));
 					String deletedString = deleted == ExpensesDbAdapter.TRUE ? "TRUE" : "FALSE";
 					String line = String.format(formatString, categoryId, categoryName, categoryDescription,
 							deletedString);
