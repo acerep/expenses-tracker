@@ -194,7 +194,7 @@ public class EditExpense extends Activity {
 		mExpenseDateButton.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				showDialog(DATE_DIALOG);
-			}
+			}			
 		});
 
 		Button cancelButton = (Button) findViewById(R.id.edit_expense_cancel);

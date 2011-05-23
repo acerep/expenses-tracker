@@ -15,13 +15,18 @@ import android.app.backup.BackupManager;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Html;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.Window;
+import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.igel.expenses.tracker.ExportExpensesUtils.ClearDirectoryResult;
@@ -32,6 +37,7 @@ public class ExpenseTracker extends ListActivity {
 	private static final int REMOVE_EXPORTED_FILES_DIALOG = 0;
 	private static final int CLEAR_DATA_DIALOG = 1;
 	private static final int CONFIRM_CLEAR_DATA_DIALOG = 2;
+	private static final int INFO_DIALOG = 3;
 
 	// activity codes for creating intents
 	private static final int ACTIVITY_SHOW_PREFERENCES = 0;
@@ -146,6 +152,7 @@ public class ExpenseTracker extends ListActivity {
 			showDialog(CLEAR_DATA_DIALOG);
 			return true;
 		case R.id.expenses_tracker_menu_info:
+			showDialog(INFO_DIALOG);
 			return true;
 		case R.id.expenses_tracker_menu_feedback:
 			return sendFeedback();
@@ -201,12 +208,14 @@ public class ExpenseTracker extends ListActivity {
 				}
 			});
 			return builder.create();
+			
 		case CLEAR_DATA_DIALOG:
 			Calendar currentMonth = CalendarUtils.getFirstDayOfMonth(Calendar.getInstance());
 			DatePickerDialog datePickerDialog = new DatePickerDialog(this, mDateSetListener, currentMonth
 					.get(Calendar.YEAR), currentMonth.get(Calendar.MONTH), currentMonth.get(Calendar.DAY_OF_MONTH));
 			datePickerDialog.setMessage(getString(R.string.expenses_tracker_clear_data_title));
 			return datePickerDialog;
+			
 		case CONFIRM_CLEAR_DATA_DIALOG:
 			// create a basic confirmation dialog with yes/no
 			builder = new AlertDialog.Builder(this);
@@ -234,6 +243,26 @@ public class ExpenseTracker extends ListActivity {
 				}
 			});
 			return builder.create();
+			
+		case INFO_DIALOG:
+			final Dialog dialog = new Dialog(this);
+			dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+			dialog.setContentView(R.layout.expenses_tracker_info);
+
+			TextView textView = (TextView) dialog.findViewById(R.id.expenses_tracker_info_text);
+			message = getString(R.string.expenses_tracker_info_text);			
+			CharSequence html = Html.fromHtml(message);
+			textView.setText(html);
+			
+			Button okButton = (Button) dialog.findViewById(R.id.expenses_tracker_info_ok);
+			okButton.setOnClickListener(new OnClickListener() {
+				public void onClick(View v) {
+					dialog.cancel();
+				}
+			});			
+			
+			// create info dialog
+			return dialog;
 		}
 		return null;
 	}

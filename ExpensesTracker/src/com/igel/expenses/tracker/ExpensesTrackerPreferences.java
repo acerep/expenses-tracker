@@ -78,7 +78,7 @@ public class ExpensesTrackerPreferences extends android.preference.PreferenceAct
 			startActivityForResult(oiFileManagerIntent, ACTION_CHOOSE_FOLDER);
 		}
 	}
-
+	
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
 		// called when started activity is finished

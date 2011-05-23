@@ -198,7 +198,7 @@ public class ExpensesTrackerBackupAgent extends BackupAgent {
 			// clear database if data is received
 			if (!expenseCategoryValues.isEmpty() || !expenseValues.isEmpty())
 				dbAdapter.clearDatabase();
-
+			
 			if (!expenseCategoryValues.isEmpty())
 				dbAdapter.createExpenseCategories(expenseCategoryValues);
 

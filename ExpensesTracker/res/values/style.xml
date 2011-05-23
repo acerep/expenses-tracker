@@ -33,6 +33,10 @@
         <item name="android:textColor">#FF6699FF</item>
     </style>
     
+  	<style name="expenses.tracker.blueText.big">
+   		<item name="android:textAppearance">?android:attr/textAppearanceLarge</item>
+    </style>
+
   	<style name="expenses.tracker.greyText">
         <item name="android:textColor">#FF909090</item>
     </style>

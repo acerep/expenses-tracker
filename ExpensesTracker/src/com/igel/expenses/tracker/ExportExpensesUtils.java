@@ -35,7 +35,7 @@ public class ExportExpensesUtils {
 		File[] files = exportDirectory.listFiles();
 		if (files == null)
 			return ClearDirectoryResult.REMOVED_NO_FILES;
-
+		
 		boolean deletedAllFiles = true;
 		boolean deletedSomething = false;
 		for (File file : files) {

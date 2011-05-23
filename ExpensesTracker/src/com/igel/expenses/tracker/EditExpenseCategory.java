@@ -128,7 +128,7 @@ public class EditExpenseCategory extends Activity {
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
-		mDbAdapter.close();
+		mDbAdapter.close();		
 	}
 	
 	private void setButtonListeners() {

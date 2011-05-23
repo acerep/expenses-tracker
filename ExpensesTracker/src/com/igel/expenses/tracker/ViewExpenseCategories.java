@@ -84,7 +84,7 @@ public class ViewExpenseCategories extends ListActivity {
 						}
 					});
 			return builder.create();
-		}
+		}		
 		return null;
 	}
 

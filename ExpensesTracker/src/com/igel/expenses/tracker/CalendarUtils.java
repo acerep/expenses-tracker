@@ -4,7 +4,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
-public final class CalendarUtils {
+public final class CalendarUtils {	
 
 	private static DateFormat mDateFormat = new SimpleDateFormat("EEE, dd.MM.yyyy");
 

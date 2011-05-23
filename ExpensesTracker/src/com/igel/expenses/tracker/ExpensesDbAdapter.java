@@ -479,7 +479,7 @@ public class ExpensesDbAdapter {
 							.getString(R.string.unknown_expense_category_description)
 					+ "', " + FALSE + ", " + System.currentTimeMillis() + ");");
 		}
-
+		
 		@Override
 		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 			if (oldVersion == 1) {

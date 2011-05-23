@@ -5,7 +5,7 @@ public class Result<T> {
 	
 	private int mMessageId;
 	private T mResult;
-	private Object[] mMessageArgs;
+	private Object[] mMessageArgs;	
 	
 	public Result(T result) {
 		mResult = result;
