@@ -6,7 +6,7 @@
     <application 
     	android:label="@string/app_name" 
     	android:theme="@style/expenses.tracker" 
-    	android:debuggable="true" 
+    	android:debuggable="false" 
     	android:backupAgent="ExpensesTrackerBackupAgent"
     	android:icon="@drawable/ic_launcher_expenses_tracker">
         
