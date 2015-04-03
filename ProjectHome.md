@@ -1,0 +1,3 @@
+This project provides a simple expenses-tracker application for android-based mobile devices. It's main purpose is to capture daily expenses using a mobile device and to export expenses on a monthly basis. Analysis of expenses can be performed using an Excel-Workbook which contains macros to import expense files and create monthly expense-overview sheets.
+
+This app can also be obtained in the [Android market](https://market.android.com/details?id=com.igel.expenses.tracker).
